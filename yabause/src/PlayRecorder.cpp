@@ -269,6 +269,9 @@ extern "C" int YabMakeCleanDir(const char * dirname) {
 #elif IOS
 #include <filesystem>
 namespace fs = filesystem;
+#elif defined(__ANDROID__)
+#include <filesystem>
+namespace fs = std::filesystem;
 #else
 #include <experimental/filesystem>
 namespace fs = experimental::filesystem;
