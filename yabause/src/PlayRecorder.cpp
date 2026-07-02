@@ -220,8 +220,8 @@ int decompress_file(const char* input_path, const char* output_path) {
 #include <filesystem>
 namespace fs = std::filesystem;
 #else
-#include <experimental/filesystem>
-namespace fs = std::experimental::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 #endif
 
 
@@ -273,8 +273,8 @@ namespace fs = filesystem;
 #include <filesystem>
 namespace fs = std::filesystem;
 #else
-#include <experimental/filesystem>
-namespace fs = experimental::filesystem;
+#include <filesystem>
+namespace fs = std::filesystem;
 #endif
 
 
