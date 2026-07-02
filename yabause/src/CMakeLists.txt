@@ -633,38 +633,13 @@ endif()
 
 if (SH2_DYNAREC)
 	if( ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "Android") )
-		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
-			enable_language(ASM)
-			set(yabause_SOURCES ${yabause_SOURCES}
-				sh2_dynarec/sh2_dynarec.c sh2_dynarec/linkage_x86.s)
-			set(yabause_HEADERS ${yabause_HEADERS}
-				sh2_dynarec/sh2_dynarec.h)
-			set_source_files_properties(sh2_dynarec/sh2_dynarec.c PROPERTIES COMPILE_FLAGS "-Wno-pointer-to-int-cast -Wno-int-to-pointer-cast")
-			add_definitions(-DSH2_DYNAREC=1)
-		endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
-		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-			enable_language(ASM)
-			set(yabause_SOURCES ${yabause_SOURCES}
-				sh2_dynarec/sh2_dynarec.c sh2_dynarec/linkage_x64.s)
-			set(yabause_HEADERS ${yabause_HEADERS}
-				sh2_dynarec/sh2_dynarec.h)
-			set_source_files_properties(sh2_dynarec/sh2_dynarec.c PROPERTIES COMPILE_FLAGS "-Wno-pointer-to-int-cast -Wno-int-to-pointer-cast")
-			add_definitions(-DSH2_DYNAREC=1)
-		endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-		if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES "^arm")
-			add_definitions(-DSH2_DYNAREC=0)
-			set(yabause_SOURCES ${yabause_SOURCES}
-				sh2_dynarec/sh2_dynarec_arm_stub.c)
-			set(yabause_HEADERS ${yabause_HEADERS}
-				sh2_dynarec/sh2_dynarec.h)
-		endif()
-		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
-			add_definitions(-DSH2_DYNAREC=0)
-			set(yabause_SOURCES ${yabause_SOURCES}
-				sh2_dynarec/sh2_dynarec_arm64_stub.c)
-			set(yabause_HEADERS ${yabause_HEADERS}
-				sh2_dynarec/sh2_dynarec.h)
-		endif()
+		# Old sh2_dynarec.c JIT is incompatible with modern Clang (17+).
+		# Use stub for all platforms; devmiyax dynarec handles SH2 emulation.
+		add_definitions(-DSH2_DYNAREC=0)
+		set(yabause_SOURCES ${yabause_SOURCES}
+			sh2_dynarec/sh2_dynarec_arm64_stub.c)
+		set(yabause_HEADERS ${yabause_HEADERS}
+			sh2_dynarec/sh2_dynarec.h)
 	endif( ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "Android") )
 endif (SH2_DYNAREC)
 
