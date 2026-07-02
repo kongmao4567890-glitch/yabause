@@ -569,7 +569,7 @@ static FILE* YOpenFile(char* buffer, const char* cue) {
      char * fdname = GetFileDescriptorPath(buffer);
      if( fdname == NULL ){
       YabSetError(YAB_ERR_FILENOTFOUND, buffer);
-      return -1;
+     return NULL;
      }
      ret_file = fopen(fdname, "rb");
   }else{
