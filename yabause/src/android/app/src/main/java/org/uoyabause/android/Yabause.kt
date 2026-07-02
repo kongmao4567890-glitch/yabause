@@ -1866,7 +1866,7 @@ class Yabause : AppCompatActivity(),
 
         // ------------------------------------------------------------------------------------------------
         // Load per game setting
-        val key = gamecode.replace(" ","-")
+        val key = gamecode!!.replace(" ","-")
         val gamePreference = getHarmonySharedPreferences(key)
         YabauseRunnable.enableRotateScreen(
             if (gamePreference.getBoolean(

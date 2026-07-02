@@ -6,7 +6,7 @@ import android.util.AttributeSet
 import androidx.preference.DialogPreference
 
 class InputSettingPreference : DialogPreference {
-  constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(
+  constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int, defStyleRes: Int) : super(
     context,
     attrs,
     defStyleAttr,
@@ -14,7 +14,7 @@ class InputSettingPreference : DialogPreference {
   ) {
   }
 
-  constructor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : super(
+  constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
     context,
     attrs,
     defStyleAttr

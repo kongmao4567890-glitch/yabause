@@ -898,7 +898,7 @@ class GameSelectFragmentPhone : Fragment(),
                     selectGameFile()
                 } else {
                     val sharedPref =
-                        PreferenceManager.getDefaultSharedPreferences(activity)
+                        PreferenceManager.getDefaultSharedPreferences(activity!!)
                     val lastDir =
                         sharedPref.getString("pref_last_dir", YabauseStorage.storage.gamePath)
                     val fd =
@@ -1292,7 +1292,8 @@ class GameSelectFragmentPhone : Fragment(),
         )
     }
 
-    private fun updateGameList() {
+    private fun updateGameList(level: Int = 0) {
+        refreshLevel = level
         if (observer != null) return
         isBackGroundComplete = false
         val tmpObserver = object : Observer<String> {

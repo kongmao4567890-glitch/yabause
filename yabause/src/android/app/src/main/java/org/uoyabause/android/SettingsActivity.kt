@@ -84,14 +84,14 @@ class SettingsActivity : AppCompatActivity() {
         override fun onResume() {
             super.onResume()
             inputManager?.registerInputDeviceListener(this, null)
-            preferenceScreen.sharedPreferences
+            preferenceScreen.sharedPreferences!!
                 .registerOnSharedPreferenceChangeListener(this)
         }
 
         override fun onPause() {
             super.onPause()
             inputManager?.unregisterInputDeviceListener(this)
-            preferenceScreen.sharedPreferences
+            preferenceScreen.sharedPreferences!!
                 .unregisterOnSharedPreferenceChangeListener(this)
         }
 
@@ -629,7 +629,7 @@ class SettingsActivity : AppCompatActivity() {
 
             val devicekey = "pref_" + player + "_inputdevice"
             val defkey = "pref_" + player + "_inputdef_file"
-            val sharedPref = PreferenceManager.getDefaultSharedPreferences(activity)
+            val sharedPref = PreferenceManager.getDefaultSharedPreferences(activity!!)
             val res = resources
             val padm = PadManager.padManager
             val input_device =

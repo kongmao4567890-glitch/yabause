@@ -836,7 +836,7 @@ class GameSelectPresenter(
             return // Activity has benn detached.
         }
         val check_prefernce = PreferenceManager.getDefaultSharedPreferences(
-            target_.activity)
+            target_.activity!!)
         val do_not_ask = check_prefernce.getBoolean("pref_dont_ask_signin", false)
         if (do_not_ask == true) {
             val auth = FirebaseAuth.getInstance()
@@ -869,7 +869,7 @@ class GameSelectPresenter(
                 .setView(view)
                 .setPositiveButton(target_.resources.getString(R.string.accept)) { dialog, _ ->
                     val cb = view.findViewById<View>(R.id.checkBox_never_ask) as CheckBox
-                    val sharedPrefwrite = PreferenceManager.getDefaultSharedPreferences(target_.activity)
+                    val sharedPrefwrite = PreferenceManager.getDefaultSharedPreferences(target_.activity!!)
                     val editor = sharedPrefwrite.edit()
                     editor.putBoolean("pref_dont_ask_signin", cb.isChecked)
                     editor.apply()
@@ -891,7 +891,7 @@ class GameSelectPresenter(
                     val cb = view.findViewById<CheckBox>(R.id.checkBox_never_ask)
                     if (cb != null) {
                         val sharedPrefwrite = PreferenceManager.getDefaultSharedPreferences(
-                            target_.activity)
+                            target_.activity!!)
                         val editor = sharedPrefwrite.edit()
                         editor.putBoolean("pref_dont_ask_signin", cb.isChecked)
                         editor.apply()

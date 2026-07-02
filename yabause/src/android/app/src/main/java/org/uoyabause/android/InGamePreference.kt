@@ -210,7 +210,7 @@ class InGamePreference(val gamecode: String) : PreferenceFragmentCompat(), Share
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         val view = super.onCreateView(inflater, container, savedInstanceState)
         view.setBackgroundColor(ContextCompat.getColor(activityContext, R.color.default_background))
         return view

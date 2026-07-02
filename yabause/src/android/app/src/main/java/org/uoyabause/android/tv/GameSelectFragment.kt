@@ -835,7 +835,7 @@ class GameSelectFragment : BrowseSupportFragment(), FileSelectedListener,
                     }else{
                         val yabroot = File(storage.rootPath)
                         val sharedPref = PreferenceManager.getDefaultSharedPreferences(
-                            activity
+                            activity!!
                         )
                         val last_dir = sharedPref.getString("pref_last_dir", yabroot.path)
                         val fd = FileDialog(requireActivity(), last_dir)
