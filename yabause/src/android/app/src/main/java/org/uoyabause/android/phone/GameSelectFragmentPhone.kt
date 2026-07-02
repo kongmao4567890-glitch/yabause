@@ -176,6 +176,10 @@ class GameSelectFragmentPhone : Fragment(),
     private var isFirstUpdate = true
     private var navigationView: NavigationView? = null
     private lateinit var tabPageAdapter: GameViewPagerAdapter
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var searchView: SearchView
+    private lateinit var gameAdapter: GameItemAdapter
+    private var allGames: MutableList<GameInfo?> = mutableListOf()
 
     private lateinit var rootView: View
     private lateinit var drawerToggle: ActionBarDrawerToggle
@@ -1358,9 +1362,7 @@ class GameSelectFragmentPhone : Fragment(),
     private fun showRestartMessage() { // need_to_accept
         val viewMessageParent = rootView.findViewById<ScrollView?>(org.devmiyax.yabasanshiro.R.id.empty_message_parent)
         val viewMessage = rootView.findViewById<TextView?>(org.devmiyax.yabasanshiro.R.id.empty_message)
-        val viewPager = rootView.findViewById<ViewPager?>(org.devmiyax.yabasanshiro.R.id.view_pager_game_index)
         viewMessageParent?.visibility = VISIBLE
-        viewPager?.visibility = View.GONE
 
         val welcomeMessage = resources.getString(org.devmiyax.yabasanshiro.R.string.need_to_accept)
         viewMessage.text = welcomeMessage
@@ -1414,10 +1416,7 @@ class GameSelectFragmentPhone : Fragment(),
                         rootView.findViewById<ScrollView?>(org.devmiyax.yabasanshiro.R.id.empty_message_parent)
                     val viewMessage =
                         rootView.findViewById<TextView?>(org.devmiyax.yabasanshiro.R.id.empty_message)
-                    val viewPager =
-                        rootView.findViewById<ViewPager?>(org.devmiyax.yabasanshiro.R.id.view_pager_game_index)
                     viewMessageParent!!.visibility = VISIBLE
-                    viewPager!!.visibility = View.GONE
 
                     val markwon = Markwon.create(this@GameSelectFragmentPhone.activity as Context)
 
@@ -1456,10 +1455,7 @@ class GameSelectFragmentPhone : Fragment(),
                     rootView.findViewById<ScrollView?>(org.devmiyax.yabasanshiro.R.id.empty_message_parent)
                 val viewMessage =
                     rootView.findViewById(org.devmiyax.yabasanshiro.R.id.empty_message) as? View
-                val viewPager =
-                    rootView.findViewById(org.devmiyax.yabasanshiro.R.id.view_pager_game_index) as? ViewPager
                 viewMessageParent?.visibility = View.GONE
-                viewPager?.visibility = VISIBLE
 
                 // -----------------------------------------------------------------
                 // Recent Play Game
