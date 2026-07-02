@@ -374,10 +374,6 @@
 
     <!-- Sync Preferences -->
     <string name="sync_title">Периодически синхронизировать почту</string>
-    <string name="attachment_title">Скачать входящие вложения</string>
-    <string name="attachment_summary_on">Автоматически скачивать вложения для входящих писем
-    </string>
-    <string name="attachment_summary_off">Скачивать вложения только вручную</string>
     <string name="do_you_want_to_install">Установить?</string>
     <string name="only_chd_is_supported_for_load_game">Вы можетеYou can choose chd,zip file.</string>
     <string name="install_game_message">После установки вы сможете загружать игру из плейлиста. Это потребует  </string>
