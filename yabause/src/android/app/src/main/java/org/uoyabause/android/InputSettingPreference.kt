@@ -20,7 +20,7 @@ class InputSettingPreference : DialogPreference {
     defStyleAttr
   ) {
   }
-*/
+
   // constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {}
 
   override fun onGetDefaultValue(arr: TypedArray, index: Int): Any {
