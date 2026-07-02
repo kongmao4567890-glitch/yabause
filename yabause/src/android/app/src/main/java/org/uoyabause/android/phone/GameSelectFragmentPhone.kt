@@ -193,6 +193,7 @@ class GameSelectFragmentPhone : Fragment(),
     //private lateinit var selectedGameIcon: ImageView
     private lateinit var selectedGameVersion: TextView
     private lateinit var selectedGameMenu: ImageButton
+    private lateinit var sortButton: ImageButton
     private var isBackGroundComplete = false
     private var isAutoSelecting = false // 自動選択中フラグ
     private var lastScrollTime = 0L // スクロール更新の間引き用
@@ -200,6 +201,7 @@ class GameSelectFragmentPhone : Fragment(),
     private var lastInputSource = 0 // Track last input source to distinguish touch vs D-pad
     private var isManuallySelected = false // 手動/削除後選択フラグ
     private var currentSortMode = SortMode.NAME // 現在のソート方法を追跡
+    private var refreshLevel = 0
 
     private var isBillingConnected = false
     private val viewModel by viewModels<BillingViewModel>()
@@ -1167,8 +1169,6 @@ class GameSelectFragmentPhone : Fragment(),
         toolbar.title = getString(org.devmiyax.yabasanshiro.R.string.app_name)
         toolbar.subtitle = getVersionName(activity)
         activity.setSupportActionBar(toolbar)
-        tabLayout = rootView.findViewById(org.devmiyax.yabasanshiro.R.id.tab_game_index)
-        tabLayout.removeAllTabs()
 
         drawerLayout =
             rootView.findViewById<View>(org.devmiyax.yabasanshiro.R.id.drawer_layout_game_select) as DrawerLayout

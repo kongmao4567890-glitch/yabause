@@ -92,6 +92,13 @@ android {
         signingConfig signingConfigs.debug
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
+        buildConfigField "String", "discord_client_id", "\"\""
+        buildConfigField "String", "discord_client_secret", "\"\""
+        buildConfigField "String", "discord_redirect_uri", "\"\""
+        buildConfigField "String", "discord_auth_url", "\"\""
+        buildConfigField "String", "discord_token_url", "\"\""
+        buildConfigField "String", "discord_user_url", "\"\""
+
         javaCompileOptions {
             annotationProcessorOptions {
                 arguments += ["room.schemaLocation": "$projectDir/schemas".toString()]
@@ -148,6 +155,7 @@ android {
 
     buildFeatures {
         viewBinding true
+        buildConfig true
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

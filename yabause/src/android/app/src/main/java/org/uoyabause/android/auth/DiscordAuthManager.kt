@@ -21,7 +21,7 @@ import org.json.JSONObject
 import java.security.MessageDigest
 import java.security.SecureRandom
 import java.util.Base64
-import org.devmiyax.yabasanshiro.R
+import org.devmiyax.yabasanshiro.BuildConfig
 
 /**
  * Discord OAuth2 authentication provider with PKCE support for Firebase Auth integration
@@ -41,13 +41,13 @@ class DiscordAuthManager(private val context: Context) {
         private const val COLLECTION_DISCORD_LINKS = "discord_links"
     }
 
-    // Configuration from local_security.xml
-    private val CLIENT_ID: String = context.getString(R.string.discord_client_id)
-    private val CLIENT_SECRET: String = context.getString(R.string.discord_client_secret)
-    private val REDIRECT_URI: String = context.getString(R.string.discord_redirect_uri)
-    private val DISCORD_AUTH_URL: String = context.getString(R.string.discord_auth_url)
-    private val DISCORD_TOKEN_URL: String = context.getString(R.string.discord_token_url)
-    private val DISCORD_USER_URL: String = context.getString(R.string.discord_user_url)
+    // Configuration from BuildConfig
+    private val CLIENT_ID: String = BuildConfig.discord_client_id
+    private val CLIENT_SECRET: String = BuildConfig.discord_client_secret
+    private val REDIRECT_URI: String = BuildConfig.discord_redirect_uri
+    private val DISCORD_AUTH_URL: String = BuildConfig.discord_auth_url
+    private val DISCORD_TOKEN_URL: String = BuildConfig.discord_token_url
+    private val DISCORD_USER_URL: String = BuildConfig.discord_user_url
 
     // PKCE state is now handled by TokenStorage
 

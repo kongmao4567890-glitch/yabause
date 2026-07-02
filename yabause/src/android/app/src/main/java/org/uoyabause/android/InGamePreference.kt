@@ -3,6 +3,8 @@
 package org.uoyabause.android
 
 import android.content.Context
+import android.content.SharedPreferences
+import com.frybits.harmony.getHarmonySharedPreferences
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
