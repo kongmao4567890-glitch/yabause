@@ -186,11 +186,8 @@ def renameAPK(variant, defaultConfig, buildType) {
 allprojects {
     repositories {
         google()
-        jcenter()
         mavenCentral()
         maven { url "https://oss.sonatype.org/content/repositories/snapshots/" }
-        maven { url 'http://fan-adn.github.io/nendSDK-Android-lib/library' }
-
     }
 }
 
