@@ -635,7 +635,8 @@ if (SH2_DYNAREC)
 	if( ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "Android") )
 		# Old sh2_dynarec.c JIT is incompatible with modern Clang (17+).
 		# Use stub for all platforms; devmiyax dynarec handles SH2 emulation.
-		add_definitions(-DSH2_DYNAREC=0)
+		# Do NOT define SH2_DYNAREC - #ifdef checks for definition, not value.
+		# Keeping it undefined ensures old dynarec code paths are skipped.
 		set(yabause_SOURCES ${yabause_SOURCES}
 			sh2_dynarec/sh2_dynarec_arm64_stub.c)
 		set(yabause_HEADERS ${yabause_HEADERS}

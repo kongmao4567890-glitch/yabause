@@ -45,7 +45,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #include <android/native_window_jni.h> // requires ndk r5 or newer
 #include <android/bitmap.h>
 #include <android/log.h>
-#include "crashlytics.h"
+//#include "crashlytics.h"
 #include "config.h"
 #include "yabause.h"
 #include "scsp.h"
@@ -116,7 +116,7 @@ int g_minorminor_version = 0;
 int g_pad_mode = 0;
 int g_pad2_mode = 0;
 int g_EnagleFPS = 0;
-int g_CpuType = 2;
+int g_CpuType = 3;
 int g_VideoFilter = 0;
 int g_PolygonGenerationMode = 0;
 static int g_SoundEngine = 0;
@@ -2058,7 +2058,7 @@ Java_org_uoyabause_android_YabauseRunnable_screenshot( JNIEnv* env, jobject obj,
         __android_log_print(ANDROID_LOG_INFO, "yabause", "%s", message);
     }
 
-    crashlytics_context_t *context = NULL;
+    //crashlytics_context_t *context = NULL;
 
     jint JNI_OnLoad(JavaVM *vm, void *reserved)
     {
@@ -2072,7 +2072,7 @@ Java_org_uoyabause_android_YabauseRunnable_screenshot( JNIEnv* env, jobject obj,
         LogStart();
         LogChangeOutput(DEBUG_CALLBACK, (char *)log_callback);
 
-        context = crashlytics_init();
+        //context = crashlytics_init();
 
         return JNI_VERSION_1_6;
     }
@@ -2443,8 +2443,8 @@ void renderLoop()
 
     YUI_LOG("byebye");
 
-    if (context != NULL)
-        crashlytics_free(&context);
+    //if (context != NULL)
+    //    crashlytics_free(&context);
 
     s_isRunning = 0;
 }

@@ -120,7 +120,7 @@ class AsyncReportV2(
             return -1
         }
         val sharedPref = PreferenceManager.getDefaultSharedPreferences(mainActivity)
-        val cputype = sharedPref.getString("pref_cpu", "2")
+        val cputype = sharedPref.getString("pref_cpu", "3")
         val gputype = sharedPref.getString("pref_video", "1")
         val reportJson = JSONObject()
         val sendJson = JSONObject()
