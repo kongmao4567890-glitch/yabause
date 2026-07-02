@@ -19,9 +19,12 @@
 */
 
 #include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <jni.h>
 #include <android/log.h>
 #include "sndopensl.h"
+#include "yabause.h"
 
 // for native audio
 #include <SLES/OpenSLES.h>
@@ -34,6 +37,8 @@
 
   
 #include "debug.h" 
+
+int InitSoundBuff(void);
 
 static int SNDOpenSLInit(void);
 static void SNDOpenSLDeInit(void);
