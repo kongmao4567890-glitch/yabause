@@ -273,31 +273,7 @@ class GameSelectFragment : BrowseSupportFragment(), FileSelectedListener,
     }
 
     var yabauseActivityLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-        if (BuildConfig.BUILD_TYPE != "pro") {
-            val prefs = requireActivity().getSharedPreferences("private", Context.MODE_PRIVATE)
-            val hasDonated = prefs.getBoolean("donated", false)
-            if (hasDonated == false) {
-                val rn = Math.random()
-                if (rn <= 0.5) {
-                    val uiModeManager =
-                        requireActivity().getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-                    if (uiModeManager.currentModeType != Configuration.UI_MODE_TYPE_TELEVISION) {
-                        if (mInterstitialAd != null) {
-                            mInterstitialAd!!.show(requireActivity())
-                        } else {
-                            val intent = Intent(activity, AdActivity::class.java)
-                            startActivity(intent)
-                        }
-                    } else {
-                        val intent = Intent(activity, AdActivity::class.java)
-                        startActivity(intent)
-                    }
-                } else if (rn > 0.5) {
-                    val intent = Intent(activity, AdActivity::class.java)
-                    startActivity(intent)
-                }
-            }
-        }
+        // Ads removed - Pro features unlocked
     }
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
@@ -1037,30 +1013,8 @@ class GameSelectFragment : BrowseSupportFragment(), FileSelectedListener,
             } else {
                 updateBackGraound()
             }
-            GameSelectPresenter.YABAUSE_ACTIVITY -> if (BuildConfig.BUILD_TYPE != "pro") {
-                val prefs = requireActivity().getSharedPreferences("private", Context.MODE_PRIVATE)
-                val hasDonated = prefs.getBoolean("donated", false)
-                if (hasDonated == false) {
-                    val rn = Math.random()
-                    if (rn <= 0.5) {
-                        val uiModeManager =
-                            requireActivity().getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-                        if (uiModeManager.currentModeType != Configuration.UI_MODE_TYPE_TELEVISION) {
-                            if (mInterstitialAd != null) {
-                                mInterstitialAd!!.show(requireActivity())
-                            } else {
-                                val intent = Intent(activity, AdActivity::class.java)
-                                startActivity(intent)
-                            }
-                        } else {
-                            val intent = Intent(activity, AdActivity::class.java)
-                            startActivity(intent)
-                        }
-                    } else if (rn > 0.5) {
-                        val intent = Intent(activity, AdActivity::class.java)
-                        startActivity(intent)
-                    }
-                }
+            GameSelectPresenter.YABAUSE_ACTIVITY -> {
+                // Ads removed - Pro features unlocked
             }
             else -> {
             }

@@ -47,7 +47,7 @@ class AutoBackupManager(
     private var backupReference: DatabaseReference? = null
     private var backupListener: ValueEventListener? = null
 
-    var isOnSubscription = false
+    var isOnSubscription = true
 
     enum class BackupSyncState {
         IDLE,

@@ -19,7 +19,8 @@
 #    6) exec eclipse and import "yabause/src/android"
 #----------------------------------------------------------------------------------------
 
-set(ENV{ANDROID_NDK} "C:/NVPACK/android-ndk-r10e")
+# NDK path is provided by Gradle/CMake toolchain automatically
+# Do not hardcode ANDROID_NDK here
 
 project(yabause-android)
 

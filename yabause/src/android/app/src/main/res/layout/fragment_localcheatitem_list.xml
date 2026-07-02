@@ -32,13 +32,28 @@
     tools:context="org.uoyabause.android.cheat.LocalCheatItemFragment"
     tools:listitem="@layout/fragment_localcheatitem">
 
-    <Button
-        android:id="@+id/button_add"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
         android:layout_weight="0.05"
-        android:text="Add" />
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/button_add"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Add" />
+
+        <Button
+            android:id="@+id/button_import"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="@string/button_import" />
+    </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"

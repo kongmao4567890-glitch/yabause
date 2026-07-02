@@ -123,45 +123,7 @@ class GameSelectActivityPhone : AppCompatActivity() {
             }
         }
 
-        if (BuildConfig.BUILD_TYPE != "pro") {
-            val prefs =
-                getSharedPreferences("private", Context.MODE_PRIVATE)
-            val hasDonated = prefs.getBoolean("donated", false)
-            if (hasDonated == false) {
-                try {
-                    MobileAds.initialize(this)
-                    adView = AdView(this)
-                    adView!!.adUnitId = this.getString(R.string.banner_ad_unit_id)
-                    adView!!.setAdSize(AdSize.BANNER)
-                    val adRequest = AdRequest.Builder().build()
-
-                    val params = FrameLayout.LayoutParams(
-                        LinearLayout.LayoutParams.WRAP_CONTENT,
-                        LinearLayout.LayoutParams.WRAP_CONTENT
-                    )
-                    params.gravity = Gravity.BOTTOM or Gravity.CENTER_HORIZONTAL
-                    frame.addView(adView, params)
-                    adView!!.bringToFront()
-                    adView!!.invalidate()
-                    ViewCompat.setTranslationZ(adView!!, 90f)
-                    adView!!.loadAd(adRequest)
-
-                    adView!!.adListener = object : AdListener() {
-                        override fun onAdLoaded() {
-                            // mAdView.getHeight() returns 0 since the ad UI didn't load
-                            adView!!.viewTreeObserver.addOnGlobalLayoutListener(object :
-                                OnGlobalLayoutListener {
-                                override fun onGlobalLayout() {
-                                    adView!!.viewTreeObserver.removeOnGlobalLayoutListener(this)
-                                    frg_.onAdViewIsShown(adView!!.getHeight())
-                                }
-                            })
-                        }
-                    }
-                } catch (e: Exception) {
-                }
-            }
-        }
+        // Ads removed - Pro features unlocked
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

@@ -331,4 +331,12 @@
     <string name="no_game_selected">请选择要替换的游戏</string>
     <string name="replace_backup_success">成功替换备份</string>
     <string name="replace_backup_failed">替换备份失败</string>
+
+    <!-- Local Cheat Import -->
+    <string name="cheat_import">导入金手指</string>
+    <string name="cheat_import_button">导入</string>
+    <string name="button_import">导入</string>
+    <string name="cheat_import_success">成功导入 %d 条金手指</string>
+    <string name="cheat_import_failed">导入失败: %s</string>
+    <string name="cheat_error">处理金手指时发生错误</string>
 </resources>

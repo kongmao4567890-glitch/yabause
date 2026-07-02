@@ -73,50 +73,10 @@ class YabauseApplication : MultiDexApplication() {
             private set
 
         fun isPro(): Boolean {
-            val prefs: SharedPreferences? = appContext.getSharedPreferences("private",
-                Context.MODE_PRIVATE)
-            var hasDonated = false
-            if (prefs != null) {
-                hasDonated = prefs.getBoolean("donated", false)
-            }
-            if (BuildConfig.BUILD_TYPE == "pro" || hasDonated) {
-                return true
-            }
-            return false
+            return true
         }
 
         fun checkDonated(ctx: Context, additionalMessage: String = ""): Int {
-            // if (BuildConfig.BUILD_TYPE == "debug") {
-            //    return 0
-            // }
-            var rtn = -1
-            if (BuildConfig.BUILD_TYPE != "pro" && BuildConfig.BUILD_TYPE != "debug") {
-                val prefs = ctx.getSharedPreferences("private", MODE_PRIVATE)
-                val hasDonated = prefs.getBoolean("donated", false)
-                if (hasDonated == false) {
-                    val builder = AlertDialog.Builder(ctx)
-                    builder.setTitle(R.string.not_available)
-                    builder.setMessage(ctx.getString(R.string.only_pro_version) + " \n" + additionalMessage)
-                    builder.setPositiveButton(R.string.got_it
-                    ) { _, _ ->
-                        val url =
-                            "https://play.google.com/store/apps/details?id=org.devmiyax.yabasanshioro2.pro"
-                        val intent = Intent(Intent.ACTION_VIEW)
-                        intent.data = Uri.parse(url)
-                        intent.setPackage("com.android.vending")
-                        ctx.startActivity(intent)
-                        rtn = -1
-                    }
-                    builder.setNegativeButton(R.string.cancel
-                    ) { _, _ ->
-                        rtn = -2
-                    }
-
-                    builder.create().show()
-
-                    return rtn
-                }
-            }
             return 0
         }
 

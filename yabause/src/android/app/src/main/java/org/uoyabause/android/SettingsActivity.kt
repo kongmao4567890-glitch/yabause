@@ -279,6 +279,8 @@ class SettingsActivity : AppCompatActivity() {
         }
 
         fun setUpInstall() {
+            // Pro features unlocked - always use Pro behavior
+            return
 
             val prefs: SharedPreferences? = YabauseApplication.appContext.getSharedPreferences("private", Context.MODE_PRIVATE)
             if (prefs != null) {

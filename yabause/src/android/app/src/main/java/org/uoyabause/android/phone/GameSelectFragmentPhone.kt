@@ -1091,112 +1091,36 @@ class GameSelectFragmentPhone : Fragment(),
         )
         val hasDonated = prefs?.getBoolean("donated", false)
 
-        if (BuildConfig.BUILD_TYPE != "pro" && hasDonated == false ) {
+        // Ads removed - Pro features unlocked
+        val rn = Math.random()
+        val lastReviewDateTime = prefs.getInt("last_review_date_time",0)
+        val unixTime = System.currentTimeMillis() / 1000L
 
-                val rn = Math.random()
-                if (rn <= 0.3) {
-                    val uiModeManager =
-                        activity?.getSystemService(Context.UI_MODE_SERVICE) as UiModeManager
-                    if (uiModeManager.currentModeType != Configuration.UI_MODE_TYPE_TELEVISION) {
-                        val intent = Intent(
-                            activity,
-                            AdActivity::class.java
-                        )
-                        adActivityLauncher.launch(intent)
-                        // }
-                    } else {
-                        val intent =
-                            Intent(activity, AdActivity::class.java)
-                        adActivityLauncher.launch(intent)
+        if( rn < 0.3 && (unixTime - lastReviewDateTime) > 60*60*24*30 ){
+            if( playtime < 5*60 ) return@registerForActivityResult
+            var manager : ReviewManager? = null
+            if( BuildConfig.DEBUG ){
+                manager = FakeReviewManager(requireContext())
+            }else{
+                val editor = prefs.edit()
+                editor.putInt("last_review_date_time",lastReviewDateTime)
+                editor.commit()
+                manager = ReviewManagerFactory.create(requireContext())
+            }
+            val request = manager.requestReviewFlow()
+            request.addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+                    val reviewInfo = task.result
+                    val flow = manager?.launchReviewFlow(requireActivity(), reviewInfo)
+                    flow?.addOnCompleteListener { _ ->
                     }
-                } else if (rn <= 0.6) {
-                    val intent =
-                        Intent(activity, AdActivity::class.java)
-                    adActivityLauncher.launch(intent)
                 } else {
-
-                    val lastReviewDateTime = prefs.getInt("last_review_date_time",0)
-                    val unixTime = System.currentTimeMillis() / 1000L
-
-                    // ３ヶ月に一度レビューしてもらう
-                    if( (unixTime - lastReviewDateTime) > 60*60*24*30 ) {
-
-                        // 5分以上遊んだ？
-                        if( playtime < 5*60 ) return@registerForActivityResult
-
-                        var manager : ReviewManager? = null
-                        if( BuildConfig.DEBUG ){
-                            manager = FakeReviewManager(requireContext())
-                        }else{
-                            val editor = prefs.edit()
-                            editor.putInt("last_review_date_time",lastReviewDateTime)
-                            editor.commit()
-                            manager = ReviewManagerFactory.create(requireContext())
-                        }
-                        val request = manager.requestReviewFlow()
-                        request.addOnCompleteListener { task ->
-                            if (task.isSuccessful) {
-                                // We got the ReviewInfo object
-                                val reviewInfo = task.result
-                                val flow = manager?.launchReviewFlow(requireActivity(), reviewInfo)
-                                flow?.addOnCompleteListener { _ ->
-
-                                }
-                            } else {
-                                task.getException()?.message?.let {
-                                        it1 -> Log.d( TAG, it1)
-                                }
-                            }
-                        }
-
-                    }else{
-                        val intent =
-                            Intent(activity, AdActivity::class.java)
-                        adActivityLauncher.launch(intent)
-                    }
-                }
-
-            updateRecent()
-
-        } else {
-
-            val rn = Math.random()
-            val lastReviewDateTime = prefs.getInt("last_review_date_time",0)
-            val unixTime = System.currentTimeMillis() / 1000L
-
-            // ３ヶ月に一度レビューしてもらう
-            if( rn < 0.3 && (unixTime - lastReviewDateTime) > 60*60*24*30 ){
-
-                // 5分以上遊んだ？
-                if( playtime < 5*60 ) return@registerForActivityResult
-
-                var manager : ReviewManager? = null
-                if( BuildConfig.DEBUG ){
-                    manager = FakeReviewManager(requireContext())
-                }else{
-                    val editor = prefs.edit()
-                    editor.putInt("last_review_date_time",lastReviewDateTime)
-                    editor.commit()
-                    manager = ReviewManagerFactory.create(requireContext())
-                }
-                val request = manager.requestReviewFlow()
-                request.addOnCompleteListener { task ->
-                    if (task.isSuccessful) {
-                        // We got the ReviewInfo object
-                        val reviewInfo = task.result
-                        val flow = manager.launchReviewFlow(requireActivity(), reviewInfo)
-                        flow.addOnCompleteListener { _ ->
-
-                        }
-                    } else {
-                        task.getException()?.message?.let {
-                                it1 -> Log.d( TAG, it1)
-                        }
-                    }
+                    task.getException()?.message?.let { it1 -> Log.d( TAG, it1) }
                 }
             }
-            updateRecent()
         }
+
+        updateRecent()
     }
 
     override fun fileSelected(file: File?) {

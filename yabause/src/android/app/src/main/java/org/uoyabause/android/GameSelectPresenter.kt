@@ -291,11 +291,8 @@ class GameSelectPresenter(
             if (prefs != null) {
                 hasDonated = prefs.getBoolean("donated", false)
             }
-            if (BuildConfig.BUILD_TYPE == "pro" || hasDonated) {
-                baseref.child(baseurl).child("max_backup_count").setValue(256)
-            } else {
-                baseref.child(baseurl).child("max_backup_count").setValue(3)
-            }
+            // Pro features unlocked - always use Pro value
+            baseref.child(baseurl).child("max_backup_count").setValue(256)
 
             autoBackupManager.startSubscribeBackupMemory(currentUser)
 
@@ -381,9 +378,7 @@ class GameSelectPresenter(
             var message =
                 target_.getString(R.string.install_game_message) + " " + size + target_.getString(R.string.install_game_message_after)
 
-            if (BuildConfig.BUILD_TYPE != "pro") {
-                message += target_.getString(R.string.remaining_installation_count_is) + " " + count + "."
-            }
+            // Pro features unlocked - do not show installation count limit
 
             AlertDialog.Builder(
                 ContextThemeWrapper1(

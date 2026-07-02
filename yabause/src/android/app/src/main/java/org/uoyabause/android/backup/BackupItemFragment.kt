@@ -228,11 +228,8 @@ class BackupItemFragment : Fragment(),
         if (prefs != null) {
             hasDonated = prefs.getBoolean("donated", false)
         }
-        if (BuildConfig.BUILD_TYPE == "pro" || hasDonated) {
-            baseref.child(user_ref).child("max_backup_count").setValue(256)
-        } else {
-            baseref.child(user_ref).child("max_backup_count").setValue(3)
-        }
+        // Pro features unlocked - always use Pro value
+        baseref.child(user_ref).child("max_backup_count").setValue(256)
 
         val baseurl = "/user-posts/" + auth.currentUser!!.uid + "/backup/"
         database_ = baseref.child(baseurl)

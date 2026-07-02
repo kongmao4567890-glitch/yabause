@@ -528,4 +528,12 @@
     <string name="discord_webhook_notification_title">New Record Posted</string>
     <string name="discord_webhook_notification_message">Your new record has been posted to Discord</string>
     <string name="discord_webhook_error">Failed to post to Discord</string>
+
+    <!-- Local Cheat Import -->
+    <string name="cheat_import">Import Cheats</string>
+    <string name="cheat_import_button">Import</string>
+    <string name="button_import">Import</string>
+    <string name="cheat_import_success">Imported %d cheats</string>
+    <string name="cheat_import_failed">Import failed: %s</string>
+    <string name="cheat_error">An error occurred while processing cheats</string>
 </resources>
