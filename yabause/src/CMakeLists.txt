@@ -682,14 +682,12 @@ if (SH2_DYNAREC)
 			endif()
 		endif ()
 		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "aarch64")
-			add_definitions(-DSH2_DYNAREC=0)
-			#enable_language(ASM-ATT)
-			#set(yabause_SOURCES ${yabause_SOURCES}
-		#		sh2_dynarec/sh2_dynarec.c sh2_dynarec/linkage_arm64.s)
-		#	set(yabause_HEADERS ${yabause_HEADERS}
-		#		sh2_dynarec/sh2_dynarec.h)
-		#	set_source_files_properties(sh2_dynarec/sh2_dynarec.c PROPERTIES COMPILE_FLAGS "-Wno-pointer-to-int-cast -Wno-int-to-pointer-cast")
-		#	add_definitions(-DSH2_DYNAREC=1)			
+			add_definitions(-DSH2_DYNAREC=1)
+			set(yabause_SOURCES ${yabause_SOURCES}
+				sh2_dynarec/sh2_dynarec.c sh2_dynarec/linkage_arm64_stub.c)
+			set(yabause_HEADERS ${yabause_HEADERS}
+				sh2_dynarec/sh2_dynarec.h)
+			set_source_files_properties(sh2_dynarec/sh2_dynarec.c PROPERTIES COMPILE_FLAGS "-Wno-pointer-to-int-cast -Wno-int-to-pointer-cast")
 		endif()
 	endif( ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "Android") )
 endif (SH2_DYNAREC)
