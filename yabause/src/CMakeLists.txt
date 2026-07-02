@@ -183,7 +183,7 @@ if (YAB_WANT_DYNAREC_DEVMIYAX)
 
 		else() # UNIX(GAS)
 			if("${CMAKE_SYSTEM_PROCESSOR}" MATCHES  "arm")
-				enable_language(ASM-ATT)
+				enable_language(ASM)
 				set(yabause_SOURCES 
 				  ${yabause_SOURCES}
 					sh2_dynarec_devmiyax/dynalib_arm.s)
@@ -634,7 +634,7 @@ endif()
 if (SH2_DYNAREC)
 	if( ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux") OR ("${CMAKE_SYSTEM_NAME}" STREQUAL "Android") )
 		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
-			enable_language(ASM-ATT)
+			enable_language(ASM)
 			set(yabause_SOURCES ${yabause_SOURCES}
 				sh2_dynarec/sh2_dynarec.c sh2_dynarec/linkage_x86.s)
 			set(yabause_HEADERS ${yabause_HEADERS}
@@ -643,7 +643,7 @@ if (SH2_DYNAREC)
 			add_definitions(-DSH2_DYNAREC=1)
 		endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "i686")
 		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
-			enable_language(ASM-ATT)
+			enable_language(ASM)
 			set(yabause_SOURCES ${yabause_SOURCES}
 				sh2_dynarec/sh2_dynarec.c sh2_dynarec/linkage_x64.s)
 			set(yabause_HEADERS ${yabause_HEADERS}
@@ -652,7 +652,7 @@ if (SH2_DYNAREC)
 			add_definitions(-DSH2_DYNAREC=1)
 		endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
 		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv5tel")
-			enable_language(ASM-ATT)
+			enable_language(ASM)
 			set(yabause_SOURCES ${yabause_SOURCES}
 				sh2_dynarec/sh2_dynarec.c sh2_dynarec/linkage_arm.s)
 			set(yabause_HEADERS ${yabause_HEADERS}
@@ -661,7 +661,7 @@ if (SH2_DYNAREC)
 			add_definitions(-DSH2_DYNAREC=1)
 		endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv5tel")
 		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
-			enable_language(ASM-ATT)
+			enable_language(ASM)
 			set(yabause_SOURCES ${yabause_SOURCES}
 				sh2_dynarec/sh2_dynarec.c sh2_dynarec/linkage_arm.s)
 			set(yabause_HEADERS ${yabause_HEADERS}
@@ -670,7 +670,7 @@ if (SH2_DYNAREC)
 			add_definitions(-DSH2_DYNAREC=1 -DHAVE_ARMv6=1 -DHAVE_ARMv7=1)
 		endif("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7l")
 		if("${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "armv7-a")
-			enable_language(ASM-ATT)
+			enable_language(ASM)
 			set(yabause_SOURCES ${yabause_SOURCES}
 				sh2_dynarec/sh2_dynarec.c sh2_dynarec/linkage_arm.s)
 			set(yabause_HEADERS ${yabause_HEADERS}
