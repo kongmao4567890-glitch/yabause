@@ -38,7 +38,6 @@ jobs:
         working-directory: yabause/src/android
         run: |
           echo "sdk.dir=${ANDROID_HOME}" > local.properties
-          echo "ndk.dir=${ANDROID_HOME}/ndk/26.3.11579264" >> local.properties
 
       - name: Grant execute permission for gradlew
         working-directory: yabause/src/android
