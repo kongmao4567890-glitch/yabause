@@ -216,7 +216,7 @@ int decompress_file(const char* input_path, const char* output_path) {
   return ret == Z_STREAM_END ? 0 : -1;
 }
 
-#if defined(IOS) || defined(WIN32)
+#if defined(IOS) || defined(WIN32) || defined(__ANDROID__)
 #include <filesystem>
 namespace fs = std::filesystem;
 #else
