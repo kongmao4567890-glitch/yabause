@@ -357,6 +357,7 @@ class GameItemAdapter(private val originalDataSet: MutableList<GameInfo?>?) :
                 } else {
                     Glide.with(holder.rootview.context)
                         .load(game.image_url?.let { File(it) })
+                        .apply(RequestOptions.centerCropTransform())
                         .into(imageView)
                 }
             }
