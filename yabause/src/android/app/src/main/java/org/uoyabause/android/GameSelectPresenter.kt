@@ -506,12 +506,58 @@ class GameSelectPresenter(
                 yabauseActivityLauncher.launch(intent)
 
             } else {
-                // Non-CHD formats: launch Yabause directly with the URI
-                // The native CD core (cdbase.c) will handle cue/bin/iso/ccd/mds formats
+                // Non-CHD formats: try to read IP.BIN header from the file
+                var gameCode = ""
+                var gameTitle = ""
+                try {
+                    val inputStream = target_.requireActivity().contentResolver.openInputStream(uri)
+                    if (inputStream != null) {
+                        val buff = ByteArray(0xFF)
+                        val dataInStream = java.io.DataInputStream(java.io.BufferedInputStream(inputStream))
+                        dataInStream.readFully(buff)
+                        dataInStream.close()
+                        // Look for SEGA header
+                        val checkStr = byteArrayOf('S'.code.toByte(), 'E'.code.toByte(), 'G'.code.toByte(), 'A'.code.toByte(), ' '.code.toByte())
+                        var startIndex = -1
+                        for (i in 0 until buff.size - checkStr.size) {
+                            if (buff[i] == checkStr[0] && buff[i+1] == checkStr[1] && buff[i+2] == checkStr[2] && buff[i+3] == checkStr[3] && buff[i+4] == checkStr[4]) {
+                                startIndex = i
+                                break
+                            }
+                        }
+                        if (startIndex != -1) {
+                            val charset = java.nio.charset.Charset.forName("MS932")
+                            gameCode = String(buff, startIndex + 0x20, 0xA, charset).trim { it <= ' ' }
+                            gameTitle = String(buff, startIndex + 0x60, 0x70, charset).trim { it <= ' ' }
+                        }
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+                if (gameCode.isEmpty()) gameCode = "DIRECT_LOAD"
+
+                try {
+                    val bundle = Bundle()
+                    bundle.putString(FirebaseAnalytics.Param.ITEM_ID, gameCode)
+                    bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, gameTitle)
+                    mFirebaseAnalytics.logEvent("yab_start_game", bundle)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+
                 parcelFileDescriptor?.close()
+                val sharedPref = PreferenceManager.getDefaultSharedPreferences(target_.requireActivity())
+                if (gameTitle.isNotEmpty()) {
+                    sharedPref.edit().putString("last_play_Game", gameTitle).commit()
+                }
                 val intent = Intent(target_.requireActivity(), Yabause::class.java)
                 intent.putExtra("org.uoyabause.android.FileNameUri", uri.toString())
-                intent.putExtra("org.uoyabause.android.gamecode", "")
+                intent.putExtra("org.uoyabause.android.gamecode", gameCode)
+                // Pass the parent directory URI for cue/mds/ccd files that reference bin/mdf
+                val parentDir = uri.toString().substringBeforeLast("%2F")
+                if (parentDir != uri.toString()) {
+                    intent.putExtra("org.uoyabause.android.FileDir", parentDir)
+                }
                 yabauseActivityLauncher.launch(intent)
             }
             withContext(Dispatchers.Main) {
