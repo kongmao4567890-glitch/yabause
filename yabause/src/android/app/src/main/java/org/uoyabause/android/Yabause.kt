@@ -64,6 +64,7 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SwitchCompat
+import androidx.activity.OnBackPressedCallback
 import androidx.core.animation.addListener
 import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
@@ -447,6 +448,78 @@ class Yabause : AppCompatActivity(),
         }
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         window.setNavigationBarColor(getResources().getColor(R.color.black_opaque))
+
+        // Register OnBackPressedCallback to intercept back key on all Android versions
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                // If menu is showing, close it
+                if (menu_showing) {
+                    // If a fragment is open, let it handle back press
+                    val fg_ingame = supportFragmentManager.findFragmentByTag(InGamePreference.TAG) as InGamePreference?
+                    if (fg_ingame != null) {
+                        fg_ingame.onBackPressed()
+                        return
+                    }
+                    val fg2 = supportFragmentManager.findFragmentByTag(PadTestFragment.TAG) as PadTestFragment?
+                    if (fg2 != null) {
+                        fg2.onBackPressed()
+                        return
+                    }
+                    var fg = supportFragmentManager.findFragmentByTag(StateListFragment.TAG)
+                    if (fg != null) {
+                        val transaction = supportFragmentManager.beginTransaction()
+                        transaction.remove(fg)
+                        transaction.commit()
+                        val mainv = findViewById<View>(R.id.yabause_view)
+                        mainv.isActivated = true
+                        mainv.requestFocus()
+                        waitingResult = false
+                        menu_showing = false
+                        YabauseRunnable.resume()
+                        audio?.unmute(YabauseAudio.SYSTEM)
+                        return
+                    }
+                    fg = supportFragmentManager.findFragmentByTag(TabBackupFragment.TAG)
+                    if (fg != null) {
+                        val transaction = supportFragmentManager.beginTransaction()
+                        transaction.remove(fg)
+                        transaction.commit()
+                        val mainv = findViewById<View>(R.id.yabause_view)
+                        mainv.isActivated = true
+                        mainv.requestFocus()
+                        waitingResult = false
+                        menu_showing = false
+                        YabauseRunnable.resume()
+                        audio?.unmute(YabauseAudio.SYSTEM)
+                        return
+                    }
+                    fg = supportFragmentManager.findFragmentByTag(LeaderBoardFragment.TAG)
+                    if (fg != null) {
+                        val transaction = supportFragmentManager.beginTransaction()
+                        transaction.remove(fg)
+                        transaction.commit()
+                        val mainv = findViewById<View>(R.id.yabause_view)
+                        mainv.isActivated = true
+                        mainv.requestFocus()
+                        waitingResult = false
+                        menu_showing = false
+                        YabauseRunnable.resume()
+                        audio?.unmute(YabauseAudio.SYSTEM)
+                        return
+                    }
+                    // Close the drawer if it's open
+                    if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                        drawerLayout.closeDrawer(GravityCompat.START)
+                        return
+                    }
+                    toggleMenu()
+                } else {
+                    // Menu not showing - open it instead of exiting
+                    toggleMenu()
+                }
+            }
+        })
+
         drawerLayout = findViewById<View>(R.id.drawer_layout) as DrawerLayout
         updateViewLayout(resources.configuration.orientation)
         var navigationView = findViewById<View>(R.id.nav_view) as NavigationView
@@ -2164,11 +2237,21 @@ class Yabause : AppCompatActivity(),
     }
 
     override fun onBackPressed() {
-        val fg = supportFragmentManager.findFragmentByTag(PadTestFragment.TAG) as PadTestFragment?
-        fg?.onBackPressed()
-        val fg2 =
+        // If a fragment is open, let it handle back press
+        val fg_ingame =
             supportFragmentManager.findFragmentByTag(InGamePreference.TAG) as InGamePreference?
-        fg2?.onBackPressed()
+        if (fg_ingame != null) {
+            fg_ingame.onBackPressed()
+            return
+        }
+        val fg2 =
+            supportFragmentManager.findFragmentByTag(PadTestFragment.TAG) as PadTestFragment?
+        if (fg2 != null) {
+            fg2.onBackPressed()
+            return
+        }
+        // Otherwise toggle the menu instead of exiting
+        toggleMenu()
     }
 
     override fun onFinish() {
