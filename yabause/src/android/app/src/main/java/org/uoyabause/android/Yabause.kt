@@ -645,31 +645,59 @@ class Yabause : AppCompatActivity(),
         }
 
         var gameCode = intent.getStringExtra("org.uoyabause.android.gamecode")
-        // Cache game title for menu display to avoid native crash on invalid UTF-8
-        try {
-            val db = Room.databaseBuilder(
-                YabauseApplication.appContext,
-                GameInfoDatabase::class.java, "main-database"
-            ).allowMainThreadQueries()
-                .build()
-            val dao = db.gameInfoDao()
-            val uriString: String? = intent.getStringExtra("org.uoyabause.android.FileNameUri")
-            val fileNameEx: String? = intent.getStringExtra("org.uoyabause.android.FileNameEx")
-            if (uriString != null) {
-                val gameinfo = dao.findByFilePath(uriString)
-                if (gameinfo != null) {
-                    gameCode = gameinfo.product_number
-                    currentDocumentUri = Uri.parse(gameinfo.iso_file_path)
-                    cachedGameTitle = gameinfo.game_title
+
+        // If gameCode was not passed via intent, try to look it up from the database
+        if (gameCode == null) {
+            try {
+                val db = Room.databaseBuilder(
+                    YabauseApplication.appContext,
+                    GameInfoDatabase::class.java, "main-database"
+                ).allowMainThreadQueries()
+                    .build()
+                val dao = db.gameInfoDao()
+                val uriString: String? = intent.getStringExtra("org.uoyabause.android.FileNameUri")
+                val fileNameEx: String? = intent.getStringExtra("org.uoyabause.android.FileNameEx")
+                if (uriString != null) {
+                    val gameinfo = dao.findByFilePath(uriString)
+                    if (gameinfo != null) {
+                        gameCode = gameinfo.product_number
+                        currentDocumentUri = Uri.parse(gameinfo.iso_file_path)
+                        cachedGameTitle = gameinfo.game_title
+                    }
+                } else if (fileNameEx != null) {
+                    val gameinfo = dao.findByFilePath(fileNameEx)
+                    if (gameinfo != null) {
+                        gameCode = gameinfo.product_number
+                        cachedGameTitle = gameinfo.game_title
+                    }
                 }
-            } else if (fileNameEx != null) {
-                val gameinfo = dao.findByFilePath(fileNameEx)
-                if (gameinfo != null) {
-                    cachedGameTitle = gameinfo.game_title
-                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } else {
+            // gameCode was passed via intent - still try to cache the game title for menu display
+            try {
+                val db = Room.databaseBuilder(
+                    YabauseApplication.appContext,
+                    GameInfoDatabase::class.java, "main-database"
+                ).allowMainThreadQueries()
+                    .build()
+                val dao = db.gameInfoDao()
+                val uriString: String? = intent.getStringExtra("org.uoyabause.android.FileNameUri")
+                val fileNameEx: String? = intent.getStringExtra("org.uoyabause.android.FileNameEx")
+                val lookupPath = uriString ?: fileNameEx
+                if (lookupPath != null) {
+                    val gameinfo = dao.findByFilePath(lookupPath)
+                    if (gameinfo != null) {
+                        cachedGameTitle = gameinfo.game_title
+                        if (currentDocumentUri == null && gameinfo.iso_file_path != null) {
+                            currentDocumentUri = Uri.parse(gameinfo.iso_file_path)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
 
         if (gameCode == null) {
@@ -1969,13 +1997,13 @@ class Yabause : AppCompatActivity(),
         } else {
             "DEFAULT"
         }
+
+        // Use safe gamecode everywhere to prevent crashes from garbled characters
+        setupInGamePreferences(this, safeGamecode)
+
         if (safeGamecode.isEmpty()) {
-            // If gamecode is all garbled, use a safe fallback
-            setupInGamePreferences(this, gamecode)
             return
         }
-
-        setupInGamePreferences(this, gamecode)
 
         // ------------------------------------------------------------------------------------------------
         // Load per game setting

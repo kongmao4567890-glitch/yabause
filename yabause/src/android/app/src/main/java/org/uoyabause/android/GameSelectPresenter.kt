@@ -869,13 +869,6 @@ class GameSelectPresenter(
         }
 
         if (item.file_path.contains("content://") == true) {
-            // Safety check: non-CHD content:// URIs (cue/ccd/mds/bin/iso) that were
-            // previously scanned into the database may crash the native CD core.
-            // Fall back to openGameFileDirect (the same path as the "+" button) for them.
-            if (!item.file_path.lowercase(Locale.ROOT).endsWith("chd")) {
-                openGameFileDirect(Uri.parse(item.file_path))
-                return
-            }
             val intent = Intent(target_.activity, Yabause::class.java)
             intent.putExtra("org.uoyabause.android.FileNameUri", item.file_path)
             intent.putExtra("org.uoyabause.android.FileDir", item.iso_file_path)
