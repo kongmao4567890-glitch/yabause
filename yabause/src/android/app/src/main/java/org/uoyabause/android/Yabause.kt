@@ -1806,40 +1806,27 @@ class Yabause : AppCompatActivity(),
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
             menu_showing = true
-            YabauseRunnable.pause()
+            try {
+                YabauseRunnable.pause()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
             audio?.mute(YabauseAudio.SYSTEM)
 
-            val tx = findViewById<TextView>(R.id.menu_title)
-            if (tx != null) {
-                val name = YabauseRunnable.getGameTitle()
-                tx.text = name
-            }
-/*
-            if (BuildConfig.BUILD_TYPE != "pro") {
-                val prefs = getSharedPreferences("private", Context.MODE_PRIVATE)
-                val hasDonated = prefs.getBoolean("donated", false)
-                if (hasDonated == false) {
-                    if (adView != null) {
-                        val lp = findViewById<LinearLayout>(R.id.navilayer)
-                        if (lp != null) {
-                            val mCount = lp.childCount
-                            var find = false
-                            for (i in 0 until mCount) {
-                                val mChild = lp.getChildAt(i)
-                                if (mChild === adView) {
-                                    find = true
-                                }
-                            }
-                            if (find == false) {
-                                lp.addView(adView)
-                            }
-                            val adRequest = AdRequest.Builder().build()
-                            adView!!.loadAd(adRequest)
-                        }
+            try {
+                val tx = findViewById<TextView>(R.id.menu_title)
+                if (tx != null) {
+                    val name = YabauseRunnable.getGameTitle()
+                    if (name != null) {
+                        tx.text = name
                     }
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
- */
+
+            // Unlock drawer to ensure it can be opened programmatically
+            drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED)
             drawerLayout.openDrawer(GravityCompat.START)
         }
     }
