@@ -30,6 +30,8 @@
         <item name="android:textColorPrimary">@color/lb_page_indicator_arrow_background</item>
         <item name="android:windowBackground">@color/default_background</item>
         <item name="colorAccent">@color/colorAccent</item>
+        <!-- Required for PreferenceFragmentCompat -->
+        <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
         <!-- Material3 specific attributes -->
         <item name="colorSurfaceVariant">@color/colorPrimary</item>
         <item name="colorOnSurface">@color/white</item>

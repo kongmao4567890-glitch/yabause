@@ -121,7 +121,12 @@ class SettingsActivity : AppCompatActivity() {
 
             // Set up delete account preference
             val deleteAccountPref = findPreference("pref_delete_account") as Preference?
-            deleteAccountPref?.isEnabled = FirebaseAuth.getInstance().currentUser != null
+            try {
+                deleteAccountPref?.isEnabled = FirebaseAuth.getInstance().currentUser != null
+            } catch (e: Exception) {
+                e.printStackTrace()
+                deleteAccountPref?.isEnabled = false
+            }
             deleteAccountPref?.onPreferenceClickListener = Preference.OnPreferenceClickListener {
                 showDeleteAccountConfirmation()
                 true
@@ -132,7 +137,12 @@ class SettingsActivity : AppCompatActivity() {
          * Show confirmation dialog for account deletion
          */
         private fun showDeleteAccountConfirmation() {
-            val currentUser = FirebaseAuth.getInstance().currentUser
+            val currentUser = try {
+                FirebaseAuth.getInstance().currentUser
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            }
             if (currentUser == null) {
                 Toast.makeText(
                     requireContext(),
@@ -156,7 +166,12 @@ class SettingsActivity : AppCompatActivity() {
          * Delete user account and all associated data
          */
         private fun deleteUserAccount() {
-            val currentUser = FirebaseAuth.getInstance().currentUser ?: return
+            val currentUser = try {
+                FirebaseAuth.getInstance().currentUser
+            } catch (e: Exception) {
+                e.printStackTrace()
+                null
+            } ?: return
             val userId = currentUser.uid
 
             lifecycleScope.launch {
@@ -583,7 +598,11 @@ class SettingsActivity : AppCompatActivity() {
             frameLimitSetting!!.summary = frameLimitSetting.entry
 
             // Set up account preferences
-            setupAccountPreferences()
+            try {
+                setupAccountPreferences()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
 
             setUpInstall()
         }
