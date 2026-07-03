@@ -31,7 +31,7 @@
 <!-- 
     <Button
         android:onClick="onPadTest"
-        android:text="Padtest" />
+        android:text="@string/pad_test" />
         </TableRow>
         <TableRow>
  -->            

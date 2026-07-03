@@ -102,7 +102,7 @@
     <string name="browse_title"><![CDATA[Videos by Your Company]]></string>
     <string name="related_movies">Related Videos</string>
     <string name="vertical_grid_title"><![CDATA[Vertical Video Grid]]></string>
-    <string name="delete_confirm">"Are you sure want to delete this item?"</string>string>
+    <string name="delete_confirm">"Are you sure want to delete this item?"</string>
     <string name="error">Error</string>
     <string name="ok">Ok</string>
     <string name="cancel">Cancel</string>
@@ -536,4 +536,25 @@
     <string name="cheat_import_success">Imported %d cheats</string>
     <string name="cheat_import_failed">Import failed: %s</string>
     <string name="cheat_error">An error occurred while processing cheats</string>
+
+    <!-- Local Cheat Paste / Export / Delete All -->
+    <string name="cheat_paste">Paste</string>
+    <string name="cheat_paste_dialog_title">Paste Cheat Codes</string>
+    <string name="cheat_paste_hint">Paste your cheat codes here. Supported formats:\n\n• Description followed by code lines\n• description|XXXXXXXX YYYY\n• # Comment lines as descriptions\n• Multiple codes per description</string>
+    <string name="cheat_export">Export</string>
+    <string name="cheat_export_success">Exported %d cheats</string>
+    <string name="cheat_export_failed">Export failed: %s</string>
+    <string name="cheat_delete_all">Delete All</string>
+    <string name="cheat_delete_all_confirm">Are you sure you want to delete ALL cheats for this game?</string>
+    <string name="cheat_no_cheats_to_export">No cheats to export</string>
+
+    <!-- Layout strings -->
+    <string name="cheat_description">Description</string>
+    <string name="cheat_action_replay_code">Action Replay Code</string>
+    <string name="cheat_apply">Apply</string>
+    <string name="please_wait">Please wait...</string>
+    <string name="generating_pin">Generating PIN...</string>
+    <string name="no_save_data">No save data found</string>
+    <string name="pad_test">Pad Test</string>
+    <string name="empty">Empty</string>
 </resources>

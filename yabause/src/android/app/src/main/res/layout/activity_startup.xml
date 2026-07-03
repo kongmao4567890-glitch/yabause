@@ -56,7 +56,7 @@
             android:layout_height="wrap_content"
             android:focusable="true"
             android:layout_gravity="bottom|center_horizontal"
-            android:text="START" />
+            android:text="@string/start" />
 
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

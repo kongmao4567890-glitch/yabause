@@ -24,7 +24,7 @@
     android:id="@+id/edit_cheat_view_layer">
 
     <TextView
-        android:text="Description"
+        android:text="@string/cheat_description"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/textView" />
@@ -39,7 +39,7 @@
         android:id="@+id/editText_cheat_desc" />
 
     <TextView
-        android:text="Action Replay Code"
+        android:text="@string/cheat_action_replay_code"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/textView3" />
@@ -61,14 +61,14 @@
         android:layout_height="match_parent">
 
         <Button
-            android:text="Apply"
+            android:text="@string/cheat_apply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button_cheat_edit_apply"
             android:layout_weight="1" />
 
         <Button
-            android:text="Cancel"
+            android:text="@string/cancel"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/button_edit_cheat_cancel"

@@ -32,7 +32,7 @@
         android:layout_margin="5dp" />
 <!--
     <ToggleButton
-        android:text="Enable"
+        android:text="@string/enable"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/toggleButton_enable_cheat"
@@ -40,7 +40,7 @@
         android:layout_gravity="center_vertical|end" />
 
     <Button
-        android:text="Edit"
+        android:text="@string/edit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/button_cheat_edit"
@@ -49,7 +49,7 @@
         />
 
     <Button
-        android:text="Del"
+        android:text="@string/delete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/button_delete_cheat"

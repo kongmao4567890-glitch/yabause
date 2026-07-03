@@ -41,5 +41,10 @@
         android:title="@string/cheat_import"
         />
 
+    <item
+        android:id="@+id/acp_delete_all"
+        android:title="@string/cheat_delete_all"
+        />
+
 
 </menu>

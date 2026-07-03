@@ -120,7 +120,7 @@
     <string name="browse_title"><![CDATA[Videos by Your Company]]></string>
     <string name="related_movies">相关视频</string>
     <string name="vertical_grid_title"><![CDATA[Vertical Video Grid]]></string>
-    <string name="delete_confirm">"是否确实要删除此项目？"</string>string>
+    <string name="delete_confirm">"是否确实要删除此项目？"</string>
     <string name="error">错误</string>
     <string name="ok">确定</string>
     <string name="cancel">取消</string>
@@ -339,4 +339,195 @@
     <string name="cheat_import_success">成功导入 %d 条金手指</string>
     <string name="cheat_import_failed">导入失败: %s</string>
     <string name="cheat_error">处理金手指时发生错误</string>
+
+    <!-- Local Cheat Paste / Export / Delete All -->
+    <string name="cheat_paste">粘贴</string>
+    <string name="cheat_paste_dialog_title">粘贴金手指代码</string>
+    <string name="cheat_paste_hint">在此粘贴金手指代码。支持的格式：\n\n• 描述行后跟代码行\n• 描述|XXXXXXXX YYYY\n• # 注释行作为描述\n• 每个描述可含多行代码</string>
+    <string name="cheat_export">导出</string>
+    <string name="cheat_export_success">已导出 %d 条金手指</string>
+    <string name="cheat_export_failed">导出失败: %s</string>
+    <string name="cheat_delete_all">全部删除</string>
+    <string name="cheat_delete_all_confirm">确定要删除该游戏的所有金手指吗？</string>
+    <string name="cheat_no_cheats_to_export">没有可导出的金手指</string>
+
+    <!-- Menu/Navigation -->
+    <string name="menu_save_state_cloud">保存进度到云端</string>
+    <string name="menu_load_state_cloud">从云端读取进度</string>
+    <string name="menu_set_as_gametitle">设为标题图标</string>
+    <string name="menu_detail">详情</string>
+    <string name="menu_acp">金手指</string>
+    <string name="menu">菜单</string>
+
+    <!-- Settings - Graphics/Video -->
+    <string name="video_aspect_ratio">宽高比</string>
+    <string name="choose_video_aspect_ratio">选择渲染宽高比</string>
+    <string name="rbg_resolution">RBG 分辨率</string>
+    <string name="choose_rbg_resolution">选择 RBG（旋转背景）屏幕分辨率</string>
+    <string name="str_use_compute_shader">使用计算着色器</string>
+    <string name="str_rotate_screen">90度旋转</string>
+    <string name="extend_internal_memory">扩展内部内存至 8MB</string>
+    <string name="hide_status_bar_and_navigation_bar">隐藏状态栏和导航栏</string>
+    <string name="show_fps">显示 FPS</string>
+    <string name="enable_frame_skip">启用跳帧</string>
+    <string name="frameLimit">速度限制</string>
+    <string name="chooseFrameLimit">选择帧率限制模式</string>
+    <string name="frameLimitNormal">正常</string>
+    <string name="frameLimitDouble">双倍</string>
+    <string name="frameLimitUnLimited">无限制</string>
+    <string name="vulkan_video_interface">Vulkan</string>
+
+    <!-- Settings - General/Sound -->
+    <string name="foce_android_tv_mode">强制 Android TV 模式</string>
+    <string name="game_select_screen">游戏选择界面</string>
+    <string name="scsp_sync">每帧 SCSP 同步数 (1 - 255)</string>
+    <string name="cpu_sync_per_line">模拟优先级</string>
+    <string name="sel_cpu_sync_per_line"></string>
+    <string name="speed">速度</string>
+    <string name="accuracy">精度</string>
+    <string name="time_synchronization_mode">声音时间同步模式</string>
+    <string name="choose_time_synchronization_mode">声音时间同步模式</string>
+    <string name="cpu_time">CPU 时间（同步到模拟的 CPU 时间。如果您的设备足够快，声音模拟非常准确。）</string>
+    <string name="real_time">实时（同步到真实时间。即使您的设备不够快，声音也不会失真。）</string>
+    <string name="use_cpu_affinity">使用 CPU 亲和性</string>
+    <string name="use_sh2_cache">使用 SH2 缓存</string>
+    <string name="game_setting">游戏设置</string>
+
+    <!-- Settings - Install/Download -->
+    <string name="download_to">下载到..</string>
+    <string name="choose_download_to">下载到..</string>
+    <string name="internal">内部存储</string>
+    <string name="external">SD 卡</string>
+    <string name="network_error">网络错误。</string>
+    <string name="server_is_not_found">服务器未找到或无法访问。</string>
+    <string name="server_error">服务器错误。</string>
+    <string name="unable_to_process_file_for_md5">无法处理文件以计算 MD5</string>
+    <string name="downloading_cd_rom">正在下载 CD-ROM</string>
+    <string name="downloading">正在下载</string>
+    <string name="finished">下载完成！</string>
+    <string name="failed">下载失败</string>
+    <string name="canceled">下载已取消</string>
+    <string name="serching_for_a_server">正在搜索服务器..</string>
+    <string name="waiting_for_reading">等待读取完成。</string>
+    <string name="checking_file">正在检查文件。</string>
+    <string name="download_file_is_broken">下载文件已损坏。</string>
+    <string name="you_need_wifi_connection">需要 WiFi 连接。</string>
+    <string name="free_space">可用空间</string>
+    <string name="no_enough_free_space">可用空间不足。</string>
+    <string name="select_install_location">安装位置</string>
+    <string name="only_chd_is_supported_for_load_game">您可以选择 chd、zip 文件。</string>
+    <string name="install_game_message">安装后，您可以直接从此游戏列表中玩。它将占用 </string>
+    <string name="install_game_message_after">MB 的存储空间。</string>
+    <string name="updating">更新中...</string>
+    <string name="add_a_game">添加游戏</string>
+
+    <!-- Account/Login -->
+    <string name="sign_in">登录</string>
+    <string name="sign_out">退出登录</string>
+    <string name="sign_in_cancelled">登录已取消</string>
+    <string name="no_internet_connection">无网络连接</string>
+    <string name="unknown_error">未知错误</string>
+    <string name="unknown_sign_in_response">未知的登录响应</string>
+    <string name="apple_sign_in_error">Apple 登录错误</string>
+    <string name="apple_sign_in_cancelled">Apple 登录已取消</string>
+    <string name="agree">我同意</string>
+    <string name="do_you_want_to_sign_in">您要登录吗？</string>
+    <string name="never_ask_me_again">不再询问</string>
+    <string name="accept">接受</string>
+    <string name="decline">拒绝</string>
+    <string name="enter_pinin">在您的设备上输入此 PIN 码</string>
+    <string name="sign_in_to_other_devices">登录到其他设备</string>
+
+    <!-- Report/Share -->
+    <string name="report_sent_success">感谢您的报告！</string>
+    <string name="report_sent_failed">发送报告失败</string>
+    <string name="are_you_sure_to_delete">确定要删除</string>
+    <string name="share">分享</string>
+    <string name="unsahre">取消分享</string>
+    <string name="send">发送</string>
+    <string name="issue_report">评论：</string>
+    <string name="status_report">状态报告：</string>
+    <string name="send_warning">发送当前截图和状态（上传大小约 2MB）</string>
+
+    <!-- Invite -->
+    <string name="invitation_title">发送邀请 uoYabause</string>
+    <string name="invitation_message">使用此应用玩 SEGA Saturn 游戏！</string>
+    <string name="invitation_cta">安装！</string>
+    <string name="invite">介绍</string>
+    <string name="invite_message">您想介绍此应用吗？</string>
+
+    <!-- Discord Webhook -->
+    <string name="discord_webhook_enabled">启用 Discord Webhook 通知</string>
+    <string name="discord_webhook_url">Discord Webhook URL</string>
+    <string name="discord_webhook_url_summary">输入 Discord webhook URL 以发布新记录</string>
+    <string name="discord_webhook_notification_title">新记录已发布</string>
+    <string name="discord_webhook_notification_message">您的新记录已发布到 Discord</string>
+    <string name="discord_webhook_error">发布到 Discord 失败</string>
+
+    <!-- Misc/UI -->
+    <string name="welcome"><![CDATA[# 欢迎！\n\n要玩 SEGA Saturn 游戏，请按照以下说明操作。\n\n1. 使用 DiscImageChef 等工具从游戏 CD-ROM 生成镜像文件。有用的工具列表在[这里](http://wiki.redump.org/index.php?title=Useful_Links)。\n2. 将镜像文件复制到智能手机内部存储中的 **\"%1$s\"** 目录。\n3. 打开侧边菜单，点击\"刷新游戏列表\"。然后会显示游戏列表。\n4. 点击您想玩的游戏标题。\n5. 享受！\n\n更多详情请查看此 [YouTube 视频](https://www.youtube.com/watch?v=Ch6_KhhAg10)。\n]]></string>
+    <string name="privacy_policy">隐私政策</string>
+    <string name="information">信息</string>
+    <string name="not_available">不可用！</string>
+    <string name="got_it">知道了！</string>
+    <string name="need_to_accept">您需要接受权限请求才能使用此应用。请重新启动。</string>
+    <string name="permission_required">需要权限</string>
+    <string name="write_permission_explanation">删除游戏文件需要写入权限。请选择包含游戏文件的文件夹以授予权限。</string>
+    <string name="deleting_file">正在删除文件</string>
+    <string name="sure_delete">确定要删除此文件吗？</string>
+    <string name="this_func_not_yet">此功能尚未实现。</string>
+    <string name="memory_manager">内存管理器</string>
+    <string name="new_version_available">Yaba Sanshiro 有新版本可用</string>
+    <string name="have_donated">我已经向 uoYabause 捐赠（不是 Yaba Sanshiro）</string>
+    <string name="title_activity_check_payment">支付验证</string>
+    <string name="send_your_order_id">发送您的 uoYabause 订单号以去除广告。您可以在 http://payments.google.com 查看订单号。</string>
+    <string name="order_number_not_found">未找到此订单号。</string>
+    <string name="order_number_used">此订单号已被使用。</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="load_state">读取进度</string>
+    <string name="activate">激活</string>
+    <string name="rate">赞</string>
+    <string name="copy_to_cloud">复制到云端</string>
+    <string name="copy_to_external">复制到外部存储</string>
+    <string name="copy_to_internal">复制到内部存储</string>
+    <string name="only_pro_version">此功能仅限专业版使用</string>
+    <string name="toggle_view_mode">切换视图模式</string>
+    <string name="tap_to_start_game">点击开始游戏</string>
+    <string name="sort_games">排序游戏</string>
+    <string name="game_menu">游戏菜单</string>
+    <string name="delete_confirm_title">删除确认</string>
+    <string name="title_activity_iso_download">ISO 下载</string>
+    <string name="title_activity_game_select_phone">游戏选择</string>
+    <string name="drawer_open">打开抽屉</string>
+    <string name="drawer_close">关闭抽屉</string>
+    <string name="title_activity_startup">启动</string>
+    <string name="title_activity_yaba_snashiro_settings">设置</string>
+
+    <!-- Preference-related (from root_preferences.xml) -->
+    <string name="messages_header">消息</string>
+    <string name="sync_header">同步</string>
+    <string name="signature_title">您的签名</string>
+    <string name="reply_title">默认回复操作</string>
+    <string name="sync_title">定期同步邮件</string>
+    <string name="attachment_title">下载附件</string>
+    <string name="attachment_summary_on">自动下载传入邮件的附件</string>
+    <string name="attachment_summary_off">仅在手动请求时下载附件</string>
+
+    <!-- Aspect ratio values -->
+    <string name="res_1080p">1080p</string>
+    <string name="res_720p">720p</string>
+    <string name="ar_original">原始</string>
+    <string name="res_4p3">4:3</string>
+    <string name="res_16p9">16:9</string>
+    <string name="res_full_screen">全屏</string>
+
+    <!-- Layout strings -->
+    <string name="cheat_description">描述</string>
+    <string name="cheat_action_replay_code">Action Replay 代码</string>
+    <string name="cheat_apply">应用</string>
+    <string name="please_wait">请稍候...</string>
+    <string name="generating_pin">正在生成 PIN 码...</string>
+    <string name="no_save_data">未找到存档数据</string>
+    <string name="pad_test">手柄测试</string>
+    <string name="empty">空</string>
 </resources>
