@@ -108,6 +108,7 @@ android {
             cmake {
                 arguments "-DYAB_PORTS=android",
                         "-DYAB_WANT_C68K=FALSE","-DYAB_WANT_ARM7=TRUE","-DYAB_WANT_DYNAREC_DEVMIYAX=TRUE",
+                        "-DYAB_WANT_VULKAN=TRUE",
                         "-DCMAKE_BUILD_TYPE=Release"
             }
         }
