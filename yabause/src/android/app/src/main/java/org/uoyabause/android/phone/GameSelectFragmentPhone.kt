@@ -246,43 +246,48 @@ class GameSelectFragmentPhone : Fragment(),
         presenter = GameSelectPresenter(this as Fragment, yabauseActivityLauncher,this)
         tabPageAdapter = GameViewPagerAdapter(this@GameSelectFragmentPhone.childFragmentManager)
 
-        val remoteConfig = FirebaseRemoteConfig.getInstance()
-        val configSettings = FirebaseRemoteConfigSettings.Builder()
-            .setMinimumFetchIntervalInSeconds(3600)
-            .build()
-        remoteConfig.setConfigSettingsAsync(configSettings)
-        remoteConfig.setDefaultsAsync(R.xml.config)
+        try {
+            val remoteConfig = FirebaseRemoteConfig.getInstance()
+            val configSettings = FirebaseRemoteConfigSettings.Builder()
+                .setMinimumFetchIntervalInSeconds(3600)
+                .build()
+            remoteConfig.setConfigSettingsAsync(configSettings)
+            remoteConfig.setDefaultsAsync(R.xml.config)
 
-        if(!remoteConfig.getBoolean("is_enable_subscription")){
-            presenter.isOnSubscription = true
-        }else {
-            presenter.isOnSubscription = false
-            viewModel.billingConnectionState.observe(this, connectionObserver)
-            lifecycleScope.launchWhenStarted {
-                viewModel.userCurrentSubscriptionFlow.collect { collectedSubscriptions ->
-                    when {
-                        collectedSubscriptions.hasPrepaidBasic == true -> {
-                            Log.d(BackupBackupItemFragment.TAG, "hasPrepaidBasic")
-                            if (presenter.isOnSubscription == false) {
-                                presenter.isOnSubscription = true
-                                presenter.syncBackup()
-                            }
+            if(!remoteConfig.getBoolean("is_enable_subscription")){
+                presenter.isOnSubscription = true
+            }else {
+                presenter.isOnSubscription = false
+                viewModel.billingConnectionState.observe(this, connectionObserver)
+                lifecycleScope.launchWhenStarted {
+                    viewModel.userCurrentSubscriptionFlow.collect { collectedSubscriptions ->
+                        when {
+                            collectedSubscriptions.hasPrepaidBasic == true -> {
+                                Log.d(BackupBackupItemFragment.TAG, "hasPrepaidBasic")
+                                if (presenter.isOnSubscription == false) {
+                                    presenter.isOnSubscription = true
+                                    presenter.syncBackup()
+                                }
 
-                        }
-                        collectedSubscriptions.hasRenewableBasic == true -> {
-                            Log.d(BackupBackupItemFragment.TAG, "hasRenewableBasic")
-                            if (presenter.isOnSubscription == false) {
-                                presenter.isOnSubscription = true
-                                presenter.syncBackup()
                             }
-                        }
-                        else -> {
-                            Log.d(BackupBackupItemFragment.TAG, "else")
-                            presenter.isOnSubscription = false
+                            collectedSubscriptions.hasRenewableBasic == true -> {
+                                Log.d(BackupBackupItemFragment.TAG, "hasRenewableBasic")
+                                if (presenter.isOnSubscription == false) {
+                                    presenter.isOnSubscription = true
+                                    presenter.syncBackup()
+                                }
+                            }
+                            else -> {
+                                Log.d(BackupBackupItemFragment.TAG, "else")
+                                presenter.isOnSubscription = false
+                            }
                         }
                     }
                 }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            presenter.isOnSubscription = true
         }
 
     }
@@ -634,8 +639,13 @@ class GameSelectFragmentPhone : Fragment(),
      */
     private suspend fun fetchCloudOnlyGames(): List<GameInfo> {
         // Check if user is signed in
-        val auth = FirebaseAuth.getInstance()
-        if (auth.currentUser == null) {
+        try {
+            val auth = FirebaseAuth.getInstance()
+            if (auth.currentUser == null) {
+                return emptyList()
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
             return emptyList()
         }
 
@@ -1160,7 +1170,12 @@ class GameSelectFragmentPhone : Fragment(),
 
     private fun setupUI(view: View, savedInstanceState: Bundle?) {
         val activity = requireActivity() as AppCompatActivity
-        firebaseAnalytics = FirebaseAnalytics.getInstance(activity)
+        try {
+            firebaseAnalytics = FirebaseAnalytics.getInstance(activity)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            firebaseAnalytics = null
+        }
         val application = activity.application as YabauseApplication
         tracker = application.defaultTracker
         val toolbar =

@@ -82,6 +82,20 @@
             android:resource="@xml/gma_ad_services_config"
             tools:replace="android:resource" />
 
+        <!-- Disable auto-init content providers that crash with dummy google-services.json -->
+        <provider
+            android:name="com.google.firebase.provider.FirebaseInitProvider"
+            android:enabled="false"
+            tools:node="merge" />
+        <provider
+            android:name="com.google.android.gms.ads.MobileAdsInitProvider"
+            android:enabled="false"
+            tools:node="merge" />
+        <provider
+            android:name="com.firebase.ui.auth.data.client.AuthUiInitProvider"
+            android:enabled="false"
+            tools:node="merge" />
+
         <activity
             android:name="org.uoyabause.android.SettingsActivity"
             android:label="@string/title_activity_yaba_snashiro_settings" />
