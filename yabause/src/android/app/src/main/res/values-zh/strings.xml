@@ -354,7 +354,7 @@
     <!-- Menu/Navigation -->
     <string name="menu_save_state_cloud">保存进度到云端</string>
     <string name="menu_load_state_cloud">从云端读取进度</string>
-    <string name="menu_set_as_gametitle">设为标题图标</string>
+    <string name="menu_set_as_gametitle">截图作为封面</string>
     <string name="menu_detail">详情</string>
     <string name="menu_acp">金手指</string>
     <string name="menu">菜单</string>

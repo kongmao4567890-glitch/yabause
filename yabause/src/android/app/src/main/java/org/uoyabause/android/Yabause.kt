@@ -955,25 +955,39 @@ class Yabause : AppCompatActivity(),
  */
             R.id.reset -> YabauseRunnable.reset()
             R.id.report -> startReport()
-/*
             R.id.gametitle -> {
                 val save_path = YabauseStorage.storage.screenshotPath
                 val current_gamecode = YabauseRunnable.getCurrentGameCode()
-                val screen_shot_save_path = "$save_path$current_gamecode.png"
-                if (YabauseRunnable.screenshot(screen_shot_save_path) == 0) {
-                    try {
-                        val gi = Select().from(GameInfo::class.java)
-                            .where("product_number = ?", current_gamecode).executeSingle<GameInfo>()
-                        if (gi != null) {
-                            gi.image_url = screen_shot_save_path
-                            gi.save()
+                if (current_gamecode != null) {
+                    val screen_shot_save_path = "$save_path$current_gamecode.png"
+                    if (YabauseRunnable.screenshot(screen_shot_save_path) == 0) {
+                        try {
+                            // Update GameInfo in database with screenshot path as cover image
+                            val db = Room.databaseBuilder(
+                                YabauseApplication.appContext,
+                                GameInfoDatabase::class.java, "main-database"
+                            ).allowMainThreadQueries().build()
+                            val dao = db.gameInfoDao()
+                            val uriString = intent.getStringExtra("org.uoyabause.android.FileNameUri")
+                            val fileNameEx = intent.getStringExtra("org.uoyabause.android.FileNameEx")
+                            val lookupPath = uriString ?: fileNameEx
+                            if (lookupPath != null) {
+                                val gi = dao.findByFilePath(lookupPath)
+                                if (gi != null) {
+                                    gi.image_url = screen_shot_save_path
+                                    dao.update(gi)
+                                    // Show success toast
+                                    runOnUiThread {
+                                        android.widget.Toast.makeText(this, R.string.menu_set_as_gametitle, android.widget.Toast.LENGTH_SHORT).show()
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, e.localizedMessage ?: "Error saving screenshot as cover")
                         }
-                    } catch (e: Exception) {
-                        Log.e(TAG, e.localizedMessage!!)
                     }
                 }
             }
-*/
             R.id.save_state -> {
                 val save_path = YabauseStorage.storage.stateSavePath
                 val current_gamecode = YabauseRunnable.getCurrentGameCode()
