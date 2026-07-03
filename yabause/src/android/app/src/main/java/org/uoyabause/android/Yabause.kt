@@ -964,6 +964,10 @@ class Yabause : AppCompatActivity(),
                     val screen_shot_save_path = "$save_path${current_gamecode}_$timestamp.png"
                     if (YabauseRunnable.screenshot(screen_shot_save_path) == 0) {
                         try {
+                            // Auto-crop black borders (letterbox) using threshold 24
+                            val croppedPath = cropBlackBorders(screen_shot_save_path)
+                            val finalPath = croppedPath ?: screen_shot_save_path
+
                             // Update GameInfo in database with screenshot path as cover image
                             val db = Room.databaseBuilder(
                                 YabauseApplication.appContext,
@@ -981,7 +985,7 @@ class Yabause : AppCompatActivity(),
                                     if (oldUrl != null && oldUrl.startsWith(save_path)) {
                                         try { File(oldUrl).delete() } catch (_: Exception) {}
                                     }
-                                    gi.image_url = screen_shot_save_path
+                                    gi.image_url = finalPath
                                     dao.update(gi)
                                     cachedGameTitle = gi.game_title
                                     // Show success toast
@@ -1942,6 +1946,135 @@ class Yabause : AppCompatActivity(),
     private var menu_showing = false
     private var cachedGameTitle: String? = null
     private var safeGameCode: String = "DEFAULT"
+
+    /**
+     * Auto-crop black borders / letterbox areas from a screenshot PNG.
+     * Uses threshold 24: pixels with all RGB channels <= 24 are considered black.
+     * Returns the path to the cropped image, or null if cropping failed/not needed.
+     */
+    private fun cropBlackBorders(srcPath: String): String? {
+        try {
+            // Load bitmap from file
+            val options = android.graphics.BitmapFactory.Options().apply {
+                inPreferredConfig = android.graphics.Bitmap.Config.ARGB_8888
+            }
+            val bitmap = android.graphics.BitmapFactory.decodeFile(srcPath, options)
+            if (bitmap == null) {
+                Log.e(TAG, "Failed to decode screenshot for cropping")
+                return null
+            }
+
+            val width = bitmap.width
+            val height = bitmap.height
+            if (width == 0 || height == 0) return null
+
+            val threshold = 24
+
+            // Find top boundary (first row with non-black pixel)
+            var top = 0
+            var found = false
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    val pixel = bitmap.getPixel(x, y)
+                    val r = android.graphics.Color.red(pixel)
+                    val g = android.graphics.Color.green(pixel)
+                    val b = android.graphics.Color.blue(pixel)
+                    if (r > threshold || g > threshold || b > threshold) {
+                        top = y
+                        found = true
+                        break
+                    }
+                }
+                if (found) break
+            }
+            if (!found) return null // Entire image is black
+
+            // Find bottom boundary (last row with non-black pixel)
+            var bottom = height - 1
+            found = false
+            for (y in height - 1 downTo top) {
+                for (x in 0 until width) {
+                    val pixel = bitmap.getPixel(x, y)
+                    val r = android.graphics.Color.red(pixel)
+                    val g = android.graphics.Color.green(pixel)
+                    val b = android.graphics.Color.blue(pixel)
+                    if (r > threshold || g > threshold || b > threshold) {
+                        bottom = y
+                        found = true
+                        break
+                    }
+                }
+                if (found) break
+            }
+
+            // Find left boundary (first column with non-black pixel)
+            var left = 0
+            found = false
+            for (x in 0 until width) {
+                for (y in top..bottom) {
+                    val pixel = bitmap.getPixel(x, y)
+                    val r = android.graphics.Color.red(pixel)
+                    val g = android.graphics.Color.green(pixel)
+                    val b = android.graphics.Color.blue(pixel)
+                    if (r > threshold || g > threshold || b > threshold) {
+                        left = x
+                        found = true
+                        break
+                    }
+                }
+                if (found) break
+            }
+
+            // Find right boundary (last column with non-black pixel)
+            var right = width - 1
+            found = false
+            for (x in width - 1 downTo left) {
+                for (y in top..bottom) {
+                    val pixel = bitmap.getPixel(x, y)
+                    val r = android.graphics.Color.red(pixel)
+                    val g = android.graphics.Color.green(pixel)
+                    val b = android.graphics.Color.blue(pixel)
+                    if (r > threshold || g > threshold || b > threshold) {
+                        right = x
+                        found = true
+                        break
+                    }
+                }
+                if (found) break
+            }
+
+            val cropWidth = right - left + 1
+            val cropHeight = bottom - top + 1
+
+            // If no significant cropping needed, return null (use original)
+            if (cropWidth >= width && cropHeight >= height) {
+                bitmap.recycle()
+                return null
+            }
+
+            // Crop the bitmap
+            val cropped = android.graphics.Bitmap.createBitmap(bitmap, left, top, cropWidth, cropHeight)
+            bitmap.recycle()
+
+            // Save cropped bitmap to a new file
+            val croppedPath = srcPath.replace(".png", "_cropped.png")
+            val fos = java.io.FileOutputStream(croppedPath)
+            cropped.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, fos)
+            fos.flush()
+            fos.close()
+            cropped.recycle()
+
+            // Delete original uncropped file
+            try { File(srcPath).delete() } catch (_: Exception) {}
+
+            Log.d(TAG, "Cropped screenshot: ${width}x${height} -> ${cropWidth}x${cropHeight}")
+            return croppedPath
+        } catch (e: Exception) {
+            Log.e(TAG, "Error cropping black borders: ${e.localizedMessage}")
+            return null
+        }
+    }
+
     private fun toggleMenu() {
         if (menu_showing == true) {
 
