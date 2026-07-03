@@ -70,18 +70,6 @@ internal class BiosFilter : FilenameFilter {
 
 internal class GameFilter : FilenameFilter {
     override fun accept(dir: File, filename: String): Boolean {
-        if (filename.endsWith(".img")) return true
-        if (filename.endsWith(".IMG")) return true
-        if (filename.endsWith(".bin")) return true
-        if (filename.endsWith(".cue")) return true
-        if (filename.endsWith(".CCD")) return true
-        if (filename.endsWith(".ccd")) return true
-        if (filename.endsWith(".iso")) return true
-        if (filename.endsWith(".mds")) return true
-        if (filename.endsWith(".BIN")) return true
-        if (filename.endsWith(".CUE")) return true
-        if (filename.endsWith(".ISO")) return true
-        if (filename.endsWith(".MDS")) return true
         if (filename.endsWith(".CHD")) return true
         return if (filename.endsWith(".chd")) true else false
     }
@@ -429,20 +417,7 @@ class YabauseStorage private constructor() {
         }
     }
     fun generateGameListFromDirectory(dir: String?) {
-        val extensions = arrayOf("img",
-            "bin",
-            "ccd",
-            "CCD",
-            "cue",
-            "mds",
-            "iso",
-            "IMG",
-            "BIN",
-            "CUE",
-            "MDS",
-            "ISO",
-            "CHD",
-            "chd")
+        val extensions = arrayOf("chd", "CHD")
 
         val recursive = true
         if (dir?.contains("content://") == true) {
@@ -477,107 +452,6 @@ class YabauseStorage private constructor() {
                         }
                         parcelFileDescriptor.close()
                     }
-                } else if (file.name!!.lowercase(Locale.ROOT).endsWith("cue")) {
-
-                    YabauseApplication.appContext.contentResolver.openInputStream(file.uri)?.use { inputStream ->
-                        BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                            var line: String? = reader.readLine()
-                            var iso_file_name = ""
-                            while (line != null) {
-                                // System.out.println(str);
-                                val p = Pattern.compile("FILE \"(.*)\"")
-                                val m = p.matcher(line)
-                                if (m.find()) {
-                                    iso_file_name = m.group(1) as String
-                                    break
-                                }
-                                line = reader.readLine()
-                            }
-
-                            val dirDoc = DocumentFile.fromTreeUri(YabauseApplication.appContext, uri)
-                            val isoFile = dirDoc?.findFile(iso_file_name)
-                            if (isoFile != null) {
-
-                                YabauseApplication.appContext.contentResolver.openInputStream(isoFile.uri)?.use { inputStream ->
-                                    val buff = ByteArray(0xFF)
-                                    val dataInStream = DataInputStream(
-                                        BufferedInputStream(inputStream)
-                                    )
-                                    dataInStream.read(buff, 0x0, 0xFF)
-                                    dataInStream.close()
-                                    val gameinfo = GameInfo.getGimeInfoFromBuf(file.uri.toString(), buff)
-                                    if (gameinfo != null) {
-                                        gameinfo.file_path = file.uri.toString()
-                                        gameinfo.iso_file_path = uri.toString()
-
-                                        checkAndRemoveDupe(gameinfo)
-                                        //gameinfo.updateState()
-                                        YabauseStorage.dao.insertAll(gameinfo)
-                                        if (progress_emitter != null) {
-                                            progress_emitter!!.onNext(gameinfo.game_title)
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else if (file.name!!.lowercase(Locale.ROOT).endsWith("ccd")) {
-                    var realname = file.name!!.replace(".ccd", ".img")
-                    val dirDoc = DocumentFile.fromTreeUri(YabauseApplication.appContext, uri)
-                    var isoFile = dirDoc?.findFile(realname)
-                    if (isoFile == null) {
-                        realname = file.name!!.replace(".ccd", ".iso")
-                        isoFile = dirDoc?.findFile(realname)
-                    }
-                    if (isoFile != null) {
-                        YabauseApplication.appContext.contentResolver.openInputStream(isoFile.uri)?.use { inputStream ->
-                            val buff = ByteArray(0xFF)
-                            val dataInStream = DataInputStream(
-                                BufferedInputStream(inputStream)
-                            )
-                            dataInStream.read(buff, 0x0, 0xFF)
-                            dataInStream.close()
-                            val gameinfo = GameInfo.getGimeInfoFromBuf(file.uri.toString(), buff)
-                            if (gameinfo != null) {
-                                gameinfo.file_path = file.uri.toString()
-                                gameinfo.iso_file_path = uri.toString()
-
-                                checkAndRemoveDupe(gameinfo)
-                                //gameinfo.updateState()
-                                YabauseStorage.dao.insertAll(gameinfo)
-                                if (progress_emitter != null) {
-                                    progress_emitter!!.onNext(gameinfo.game_title)
-                                }
-                            }
-                        }
-                    }
-                    // Toast.makeText(YabauseApplication.appContext,"ccd is not supported yet for SAF",Toast.LENGTH_LONG).show()
-                } else if (file.name!!.lowercase(Locale.ROOT).endsWith("mds")) {
-
-                    var realname = file.name!!.replace(".mds", ".mdf")
-                    val dirDoc = DocumentFile.fromTreeUri(YabauseApplication.appContext, uri)
-                    var isoFile = dirDoc?.findFile(realname)
-                    if (isoFile != null) {
-                        YabauseApplication.appContext.contentResolver.openInputStream(isoFile.uri)?.use { inputStream ->
-                            val buff = ByteArray(0xFF)
-                            val dataInStream = DataInputStream(
-                                BufferedInputStream(inputStream)
-                            )
-                            dataInStream.read(buff, 0x0, 0xFF)
-                            dataInStream.close()
-                            val gameinfo = GameInfo.getGimeInfoFromBuf(file.uri.toString(), buff)
-                            if (gameinfo != null) {
-                                gameinfo.file_path = file.uri.toString()
-                                gameinfo.iso_file_path = uri.toString()
-                                checkAndRemoveDupe(gameinfo)
-                                //gameinfo.updateState()
-                                dao.insertAll(gameinfo)
-                                if (progress_emitter != null) {
-                                    progress_emitter!!.onNext(gameinfo.game_title)
-                                }
-                            }
-                        }
-                    }
                 } else if (file.isDirectory()) {
                     generateGameListFromDirectory(file.uri.toString())
                 }
@@ -600,22 +474,7 @@ class YabauseStorage private constructor() {
                 val gamefile_name = gamefile.absolutePath
                 Log.d("generateGameDB", gamefile_name)
                 var gameinfo: GameInfo? = null
-                if (gamefile_name.lowercase(Locale.ROOT).endsWith("cue")) {
-                    val tmp = dao.findByFilePath(gamefile_name)
-                    if (tmp == null) {
-                        gameinfo = GameInfo.genGameInfoFromCUE(gamefile_name)
-                    }
-                } else if (gamefile_name.lowercase(Locale.ROOT).endsWith("mds")) {
-                    val tmp = dao.findByFilePath(gamefile_name)
-                    if (tmp == null) {
-                        gameinfo = GameInfo.genGameInfoFromMDS(gamefile_name)
-                    }
-                } else if (gamefile_name.lowercase(Locale.ROOT).endsWith("ccd")) {
-                    val tmp = dao.findByFilePath(gamefile_name)
-                    if (tmp == null) {
-                        gameinfo = GameInfo.genGameInfoFromCCD(gamefile_name)
-                    }
-                } else if (gamefile_name.lowercase(Locale.ROOT).endsWith("chd")) {
+                if (gamefile_name.lowercase(Locale.ROOT).endsWith("chd")) {
                     val tmp = dao.findByFilePath(gamefile_name)
                     if (tmp == null) {
                         gameinfo = GameInfo.genGameInfoFromCHD(gamefile_name)
@@ -629,26 +488,6 @@ class YabauseStorage private constructor() {
 
                     if (progress_emitter != null) {
                         progress_emitter!!.onNext(gameinfo.game_title)
-                    }
-                }
-            }
-            iter = FileUtils.iterateFiles(gamedir, extensions, recursive)
-            while (iter.hasNext()) {
-                val gamefile = iter.next()
-                val gamefile_name = gamefile.absolutePath
-                if (gamefile_name.endsWith("BIN") || gamefile_name.endsWith("bin") ||
-                    gamefile_name.endsWith("ISO") || gamefile_name.endsWith("iso") ||
-                    gamefile_name.endsWith("IMG") || gamefile_name.endsWith("img")
-                ) {
-                    //val tmp = GameInfo.getFromInDirectFileName(gamefile_name)
-                    val tmp =dao.findByInDirectFilePath(gamefile_name)
-                    if (tmp == null) {
-                        val gameinfo = GameInfo.genGameInfoFromIso(gamefile_name)
-                        if (gameinfo != null) {
-                            checkAndRemoveDupe(gameinfo)
-                            //gameinfo.updateState()
-                            dao.insertAll(gameinfo)
-                        }
                     }
                 }
             }

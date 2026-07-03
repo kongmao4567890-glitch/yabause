@@ -449,7 +449,10 @@ class Yabause : AppCompatActivity(),
         window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         window.setNavigationBarColor(getResources().getColor(R.color.black_opaque))
 
-        // Register OnBackPressedCallback to intercept back key on all Android versions
+        drawerLayout = findViewById<View>(R.id.drawer_layout) as DrawerLayout
+
+        // Register OnBackPressedCallback to intercept back key on all Android versions.
+        // Registered after drawerLayout is initialized so it is available when the callback fires.
         onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 // If menu is showing, close it
@@ -520,7 +523,6 @@ class Yabause : AppCompatActivity(),
             }
         })
 
-        drawerLayout = findViewById<View>(R.id.drawer_layout) as DrawerLayout
         updateViewLayout(resources.configuration.orientation)
         var navigationView = findViewById<View>(R.id.nav_view) as NavigationView
         navigationView.setNavigationItemSelectedListener(this)
@@ -1816,7 +1818,21 @@ class Yabause : AppCompatActivity(),
                     fg2.onBackPressed()
                     return true
                 }
-                toggleMenu()
+                try {
+                    toggleMenu()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            }
+            return true
+        }
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            if (event.action == KeyEvent.ACTION_DOWN && event.repeatCount == 0) {
+                try {
+                    toggleMenu()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
             return true
         }
