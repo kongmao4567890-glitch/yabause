@@ -992,10 +992,8 @@ assign_source_group(${yabause_SOURCES})
 #----------------------------------------------------------------------
 # Library for vulkan plugin
 if(YAB_WANT_VULKAN)
-	if(WIN32)
-		add_dependencies(yabause shaderc)
-	endif()
-add_dependencies(yabause glm)
+	add_dependencies(yabause shaderc)
+	add_dependencies(yabause glm)
 endif(YAB_WANT_VULKAN)
 
 #-----------------------------------------------------------------------
