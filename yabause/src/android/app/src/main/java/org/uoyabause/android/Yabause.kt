@@ -645,26 +645,35 @@ class Yabause : AppCompatActivity(),
         }
 
         var gameCode = intent.getStringExtra("org.uoyabause.android.gamecode")
-        if (gameCode == null) {
+        // Cache game title for menu display to avoid native crash on invalid UTF-8
+        try {
             val db = Room.databaseBuilder(
                 YabauseApplication.appContext,
                 GameInfoDatabase::class.java, "main-database"
             ).allowMainThreadQueries()
                 .build()
             val dao = db.gameInfoDao()
-
-            var gameinfo: GameInfo? = null
             val uriString: String? = intent.getStringExtra("org.uoyabause.android.FileNameUri")
-            if( uriString != null ){
-                gameinfo = dao.findByFilePath(uriString)
+            val fileNameEx: String? = intent.getStringExtra("org.uoyabause.android.FileNameEx")
+            if (uriString != null) {
+                val gameinfo = dao.findByFilePath(uriString)
                 if (gameinfo != null) {
                     gameCode = gameinfo.product_number
                     currentDocumentUri = Uri.parse(gameinfo.iso_file_path)
-                }else{
-                    gameCode = null
-                    showInitFailedDialog("You need add this game to game list before launch it.")
+                    cachedGameTitle = gameinfo.game_title
+                }
+            } else if (fileNameEx != null) {
+                val gameinfo = dao.findByFilePath(fileNameEx)
+                if (gameinfo != null) {
+                    cachedGameTitle = gameinfo.game_title
                 }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        if (gameCode == null) {
+            gameCode = "DIRECT_LOAD"
         }
 
         testCase = intent.getStringExtra("TestCase")
@@ -1880,6 +1889,7 @@ class Yabause : AppCompatActivity(),
     }
 
     private var menu_showing = false
+    private var cachedGameTitle: String? = null
     private fun toggleMenu() {
         if (menu_showing == true) {
 
@@ -1890,7 +1900,11 @@ class Yabause : AppCompatActivity(),
             menu_showing = false
             val mainview = findViewById(R.id.yabause_view) as View
             mainview.requestFocus()
-            YabauseRunnable.resume()
+            try {
+                YabauseRunnable.resume()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
             audio?.unmute(YabauseAudio.SYSTEM)
             drawerLayout.closeDrawer(GravityCompat.START)
         } else {
@@ -1905,7 +1919,15 @@ class Yabause : AppCompatActivity(),
             try {
                 val tx = findViewById<TextView>(R.id.menu_title)
                 if (tx != null) {
-                    val name = YabauseRunnable.getGameTitle()
+                    // Use cached title first; fall back to native getGameTitle()
+                    var name = cachedGameTitle
+                    if (name == null) {
+                        try {
+                            name = YabauseRunnable.getGameTitle()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                    }
                     if (name != null) {
                         tx.text = name
                     }

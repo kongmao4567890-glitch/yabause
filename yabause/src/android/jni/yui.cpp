@@ -1968,6 +1968,24 @@ extern "C"
             sprintf(buf, "%s(%s)", cdip->gamename, cdip->cdinfo);
         }
 
+        // Sanitize: replace any non-ASCII/non-printable bytes to prevent
+        // NewStringUTF from crashing on invalid modified UTF-8 sequences.
+        // (Some game discs have Shift-JIS bytes in IP.BIN that are not valid UTF-8.)
+        for (int i = 0; buf[i] != '\0'; i++) {
+            unsigned char c = (unsigned char)buf[i];
+            // Allow tab/newline/carriage return
+            if (c == '\t' || c == '\n' || c == '\r')
+                continue;
+            // Allow printable ASCII (0x20-0x7E)
+            if (c >= 0x20 && c <= 0x7E)
+                continue;
+            // Allow valid UTF-8 continuation bytes (0x80-0xBF) and
+            // leading bytes (0xC0-0xF7). Replace anything else with '?'.
+            if (c >= 0x80 && c <= 0xF7)
+                continue;
+            buf[i] = '?';
+        }
+
         rtn = env->NewStringUTF(buf);
         free(buf);
         return rtn;

@@ -840,21 +840,33 @@ class GameSelectPresenter(
 
         val application = target_.requireActivity().application as YabauseApplication
         tracker = application.defaultTracker
-        tracker?.send(
-            HitBuilders.EventBuilder()
-                .setCategory("Action")
-                .setAction(item.game_title)
-                .build()
-        )
-        val bundle = Bundle()
-        bundle.putString(FirebaseAnalytics.Param.ITEM_ID, item.product_number)
-        bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, item.game_title)
-        mFirebaseAnalytics.logEvent(
-            "yab_start_game", bundle
-        )
+        try {
+            tracker?.send(
+                HitBuilders.EventBuilder()
+                    .setCategory("Action")
+                    .setAction(item.game_title)
+                    .build()
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        try {
+            val bundle = Bundle()
+            bundle.putString(FirebaseAnalytics.Param.ITEM_ID, item.product_number)
+            bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, item.game_title)
+            mFirebaseAnalytics.logEvent(
+                "yab_start_game", bundle
+            )
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
-        val sharedPref = PreferenceManager.getDefaultSharedPreferences(target_.requireActivity())
-        sharedPref.edit().putString("last_play_Game",item.game_title).commit()
+        try {
+            val sharedPref = PreferenceManager.getDefaultSharedPreferences(target_.requireActivity())
+            sharedPref.edit().putString("last_play_Game", item.game_title).commit()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
         if (item.file_path.contains("content://") == true) {
             // Safety check: non-CHD content:// URIs (cue/ccd/mds/bin/iso) that were
