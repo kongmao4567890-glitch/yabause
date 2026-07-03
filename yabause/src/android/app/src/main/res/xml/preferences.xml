@@ -257,20 +257,6 @@
             android:dialogTitle="@string/choose_time_synchronization_mode"
             android:entries="@array/entries_scsp_time_synchronization_mode"
             android:entryValues="@array/entryvalues_scsp_time_synchronization_mode"
-            android:defaultValue="0" />
-
-        <EditTextPreference
-            android:key="pref_scsp_sync_per_frame"
-            android:defaultValue="4"
-            android:summary=""
-            android:title="Scsp synchronization count per a frame(1 - 255)" />
-
-        <ListPreference
-            android:key="scsp_time_sync_mode"
-            android:title="@string/time_synchronization_mode"
-            android:dialogTitle="@string/choose_time_synchronization_mode"
-            android:entries="@array/entries_scsp_time_synchronization_mode"
-            android:entryValues="@array/entryvalues_scsp_time_synchronization_mode"
             android:defaultValue="1" />
 
         <EditTextPreference

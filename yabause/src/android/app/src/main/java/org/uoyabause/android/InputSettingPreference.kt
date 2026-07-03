@@ -21,7 +21,7 @@ class InputSettingPreference : DialogPreference {
   ) {
   }
 
-  // constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {}
+  constructor(context: Context, attrs: AttributeSet?) : super(context, attrs) {}
 
   override fun onGetDefaultValue(arr: TypedArray, index: Int): Any {
     return arr.getString(index)!!

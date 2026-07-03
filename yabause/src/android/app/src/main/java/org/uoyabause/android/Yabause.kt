@@ -1956,6 +1956,12 @@ class Yabause : AppCompatActivity(),
             videoInterface = -1
         }
 
+        // Vulkan (4) is not compiled in this build; fall back to OpenGL (1)
+        if (videoInterface == 4) {
+            videoInterface = if (supportsEs3) 1 else 2
+            Log.w(TAG, "Vulkan not available, falling back to videoInterface=$videoInterface")
+        }
+
         // Force tesselation and compute Shader
         if( videoInterface == 4 ) {
 

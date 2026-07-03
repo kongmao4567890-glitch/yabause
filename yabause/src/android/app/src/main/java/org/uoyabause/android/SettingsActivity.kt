@@ -484,10 +484,7 @@ class SettingsActivity : AppCompatActivity() {
             video_labels.add(res.getString(R.string.software_video_interface))
             video_values.add("2")
 
-            if (requireActivity().getPackageManager().hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL)) {
-                video_labels.add(res.getString(R.string.vulkan_video_interface))
-                video_values.add("4")
-            }
+            // Vulkan not compiled in this build - do not offer it as an option
 
             video_cart!!.entries = video_labels.toTypedArray()
             video_cart.entryValues = video_values.toTypedArray()
