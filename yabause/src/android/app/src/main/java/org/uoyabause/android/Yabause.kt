@@ -1383,14 +1383,15 @@ class Yabause : AppCompatActivity(),
             R.id.menu_in_game_setting -> {
                 waitingResult = true
                 val transaction = supportFragmentManager.beginTransaction()
-                val currentGameCode = YabauseRunnable.getCurrentGameCode()
-                if (currentGameCode == null) {
+                // Use safeGameCode (from intent/database) so InGamePreference
+                // reads/writes the same SharedPreferences key as readPreferences
+                if (safeGameCode.isEmpty()) {
                     waitingResult = false
                     YabauseRunnable.resume()
                     audio?.unmute(YabauseAudio.SYSTEM)
                     return true
                 }
-                val fragment = InGamePreference(currentGameCode)
+                val fragment = InGamePreference(safeGameCode)
                 val observer: Observer<String?> = object : Observer<String?> {
                     // GithubRepositoryApiCompleteEventEntity eventResult = new GithubRepositoryApiCompleteEventEntity();
                     override fun onSubscribe(d: Disposable) {}
@@ -1406,8 +1407,8 @@ class Yabause : AppCompatActivity(),
                         YabauseRunnable.lockGL()
 
                         updateViewLayout(resources.configuration.orientation)
-                        val currentGameCode = YabauseRunnable.getCurrentGameCode()
-                        val gamePreference = getSharedPreferences(currentGameCode, Context.MODE_PRIVATE)
+                        // Use safeGameCode and Harmony SharedPreferences to match readPreferences
+                        val gamePreference = getHarmonySharedPreferences(safeGameCode)
                         YabauseRunnable.enableRotateScreen(
                             if (gamePreference.getBoolean(
                                     "pref_rotate_screen",
@@ -1940,6 +1941,7 @@ class Yabause : AppCompatActivity(),
 
     private var menu_showing = false
     private var cachedGameTitle: String? = null
+    private var safeGameCode: String = "DEFAULT"
     private fun toggleMenu() {
         if (menu_showing == true) {
 
@@ -2019,6 +2021,9 @@ class Yabause : AppCompatActivity(),
         } else {
             "DEFAULT"
         }
+
+        // Store for use by InGamePreference and onComplete callback
+        safeGameCode = safeGamecode
 
         // Use safe gamecode everywhere to prevent crashes from garbled characters
         setupInGamePreferences(this, safeGamecode)
