@@ -320,6 +320,7 @@ class GameItemAdapter(private val originalDataSet: MutableList<GameInfo?>?) :
                     }
                     val glideRequest = Glide.with(imageView)
                         .load(url)
+                        .apply(RequestOptions().centerCrop().skipMemoryCache(true).diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE))
                         .error(R.drawable.missing) // エラー時のフォールバック画像を設定
 
                     // Apply grayscale effect for cloud-only games
