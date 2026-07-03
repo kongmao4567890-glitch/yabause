@@ -1938,11 +1938,26 @@ class Yabause : AppCompatActivity(),
 
     private fun readPreferences(gamecode: String?) {
 
+        // Sanitize gamecode: remove non-printable/control characters and trim
+        val safeGamecode = if (gamecode != null) {
+            val cleaned = gamecode.replace(" ", "-").trim()
+            // Remove any characters that could cause issues with SharedPreferences keys
+            // Keep only alphanumeric, dash, underscore, dot, and parentheses
+            cleaned.filter { it.isLetterOrDigit() || it == '-' || it == '_' || it == '.' || it == '(' || it == ')' }
+        } else {
+            "DEFAULT"
+        }
+        if (safeGamecode.isEmpty()) {
+            // If gamecode is all garbled, use a safe fallback
+            setupInGamePreferences(this, gamecode)
+            return
+        }
+
         setupInGamePreferences(this, gamecode)
 
         // ------------------------------------------------------------------------------------------------
         // Load per game setting
-        val key = gamecode!!.replace(" ","-")
+        val key = safeGamecode
         val gamePreference = getHarmonySharedPreferences(key)
         YabauseRunnable.enableRotateScreen(
             if (gamePreference.getBoolean(

@@ -294,10 +294,12 @@ data class GameInfo(
                 val charaset = Charset.forName("MS932")
                 tmp.file_path = file_path
                 tmp.iso_file_path = file_path.uppercase(Locale.getDefault())
-                tmp.maker_id = String(header, startindex + 0x10, 0x10, )
+                tmp.maker_id = String(header, startindex + 0x10, 0x10, charaset)
                 tmp.maker_id = tmp.maker_id.trim { it <= ' ' }
                 tmp.product_number = String(header, startindex + 0x20, 0xA, charaset)
                 tmp.product_number = tmp.product_number.trim { it <= ' ' }
+                // Sanitize product_number: keep only printable ASCII for use as SharedPreferences key
+                tmp.product_number = tmp.product_number.filter { it.isLetterOrDigit() || it == '-' || it == '_' || it == '.' }
                 tmp.version = String(header, startindex + 0x2A, 0x10, charaset)
                 tmp.version = tmp.version.trim { it <= ' ' }
                 tmp.release_date = String(header, startindex + 0x30, 0x8, charaset)
