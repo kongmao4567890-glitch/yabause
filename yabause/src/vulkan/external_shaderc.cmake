@@ -56,6 +56,7 @@ ExternalProject_Add(
         -DSHADERC_ENABLE_SHARED_CRT=TRUE
         -DCMAKE_INSTALL_PREFIX=<INSTALL_DIR>
         ${ADDITIONAL_CMAKE_ARGS}
+    BUILD_BYPRODUCTS <BINARY_DIR>/libshaderc/${CMAKE_STATIC_LIBRARY_PREFIX}shaderc_combined${CMAKE_STATIC_LIBRARY_SUFFIX}
 )
 
 ExternalProject_Get_Property(shaderc BINARY_DIR)
