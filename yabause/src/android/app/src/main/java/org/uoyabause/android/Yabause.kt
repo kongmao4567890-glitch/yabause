@@ -1965,8 +1965,8 @@ class Yabause : AppCompatActivity(),
      */
     private fun startFileLogging() {
         try {
-            val logDir = YabauseStorage.storage.basePath + "logs/"
-            val logDirFile = File(logDir)
+            val logDir: String = YabauseStorage.storage.rootPath + "logs/"
+            val logDirFile = java.io.File(logDir)
             if (!logDirFile.exists()) {
                 logDirFile.mkdirs()
             }
