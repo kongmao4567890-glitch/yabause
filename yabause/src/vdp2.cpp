@@ -705,7 +705,7 @@ void VDP2genVRamCyclePattern() {
   }
 }
 
-// 0 .. 60Hz(1x), 1 .. no limit, 2 .. 2x, 3 .. 2.5x, 4 .. 3x, 5 .. 3.5x, 6 .. 4x, 7 .. 4.5x, 8 .. 5x
+// 0=1x, 1=Unlimited, 2=2x, 3=2.5x, 4=3x, 5=3.5x, 6=4x, 7=4.5x, 8=5x, 9=5.5x, 10=6x, 11=6.5x, 12=7x, 13=7.5x, 14=8x
 void VDP2SetFrameLimit(int mode) {
   switch (mode) {
   case 0:
@@ -768,6 +768,48 @@ void VDP2SetFrameLimit(int mode) {
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
     break;
+  case 9:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 55; // 5.5x = 330Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 10:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 60; // 6x = 360Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 11:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 65; // 6.5x = 390Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 12:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 70; // 7x = 420Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 13:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 75; // 7.5x = 450Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 14:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 80; // 8x = 480Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
   default:
     enableFrameLimit = 1;
     frameLimitMultiplier = 10;
@@ -806,19 +848,27 @@ void frameSkipAndLimit() {
 
     diffticks = curticks - lastticks;
 
+    // Scale frame skip count with multiplier for high speeds
+    // At 2x skip 1, 3x skip 2, 4x skip 3, etc.
+    int framesToSkip = (frameLimitMultiplier / 10) - 1;
+    if (framesToSkip < 1) framesToSkip = 1;
+
     if ( autoframeskipenab && (onesecondticks + diffticks) > targetTime )
     {
-      LOG("Frame skip target:%lu current:%lu", targetTime, (onesecondticks + diffticks));
+      LOG("Frame skip target:%lu current:%lu (mult=%d skip=%d)", targetTime, (onesecondticks + diffticks), frameLimitMultiplier, framesToSkip);
       // Skip the next frame
       skipnextframe = 1;
 
-      // How many frames should we skip?
-      framestoskip = 1;
+      // Scale frames to skip based on speed multiplier
+      framestoskip = framesToSkip;
 
     }
 
-    // just wait for next vsync
-    targetTime -= 1000;
+    // Scale the wait threshold proportionally to frame time
+    // (was fixed at 1000 which is too large for small frame times at high speed)
+    u64 waitThreshold = adjustedFrameTime / 10;
+    if (waitThreshold < 100) waitThreshold = 100;
+    targetTime -= waitThreshold;
     if ( (onesecondticks + diffticks) < targetTime )
     {
 

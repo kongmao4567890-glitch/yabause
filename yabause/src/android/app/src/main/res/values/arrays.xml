@@ -153,6 +153,12 @@
         <item>@string/frameLimit4x</item>
         <item>@string/frameLimit4_5x</item>
         <item>@string/frameLimit5x</item>
+        <item>@string/frameLimit5_5x</item>
+        <item>@string/frameLimit6x</item>
+        <item>@string/frameLimit6_5x</item>
+        <item>@string/frameLimit7x</item>
+        <item>@string/frameLimit7_5x</item>
+        <item>@string/frameLimit8x</item>
         <item>@string/frameLimitUnLimited</item>
     </string-array>
 
@@ -165,6 +171,12 @@
         <item>6</item>
         <item>7</item>
         <item>8</item>
+        <item>9</item>
+        <item>10</item>
+        <item>11</item>
+        <item>12</item>
+        <item>13</item>
+        <item>14</item>
         <item>1</item>
     </string-array>
 
