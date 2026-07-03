@@ -101,27 +101,7 @@ class GameSelectActivityPhone : AppCompatActivity() {
         }
 
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            when {
-                ContextCompat.checkSelfPermission(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) == PackageManager.PERMISSION_GRANTED -> {
-                    // 既に許可されている場合の処理
-                }
-                ActivityCompat.shouldShowRequestPermissionRationale(
-                    this,
-                    Manifest.permission.POST_NOTIFICATIONS
-                ) -> {
-                    // 許可が必要であることを説明するUIを表示
-                    showInContextUI()
-                }
-                else -> {
-                    // 許可をリクエストする
-                    requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
-            }
-        }
+        // Notification permission request removed - not needed for this app
 
         // Ads removed - Pro features unlocked
     }

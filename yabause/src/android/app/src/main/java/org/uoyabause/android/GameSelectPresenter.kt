@@ -409,6 +409,11 @@ class GameSelectPresenter(
             selectStorage {
                 installZipGameFile(uri, path)
             }
+        } else if (path.lowercase(Locale.getDefault()).run {
+            endsWith("bin") || endsWith("iso") || endsWith("img") ||
+            endsWith("cue") || endsWith("ccd") || endsWith("mds") || endsWith("mdf")
+        }) {
+            openGameFileDirect(uri)
         } else {
             Toast.makeText(target_.requireContext(),
                 target_.getString(R.string.only_chd_is_supported_for_load_game),
@@ -485,9 +490,13 @@ class GameSelectPresenter(
                 val bundle = Bundle()
                 bundle.putString(FirebaseAnalytics.Param.ITEM_ID, gameinfo.product_number)
                 bundle.putString(FirebaseAnalytics.Param.ITEM_NAME, gameinfo.game_title)
-                mFirebaseAnalytics.logEvent(
-                    "yab_start_game", bundle
-                )
+                try {
+                    mFirebaseAnalytics.logEvent(
+                        "yab_start_game", bundle
+                    )
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
                 parcelFileDescriptor!!.close()
                 val sharedPref = PreferenceManager.getDefaultSharedPreferences(target_.requireActivity())
                 sharedPref.edit().putString("last_play_Game",gameinfo.game_title).commit()
@@ -497,8 +506,13 @@ class GameSelectPresenter(
                 yabauseActivityLauncher.launch(intent)
 
             } else {
-                Toast.makeText(target_.requireContext(), "Fail to open $apath", Toast.LENGTH_LONG).show()
+                // Non-CHD formats: launch Yabause directly with the URI
+                // The native CD core (cdbase.c) will handle cue/bin/iso/ccd/mds formats
                 parcelFileDescriptor?.close()
+                val intent = Intent(target_.requireActivity(), Yabause::class.java)
+                intent.putExtra("org.uoyabause.android.FileNameUri", uri.toString())
+                intent.putExtra("org.uoyabause.android.gamecode", "")
+                yabauseActivityLauncher.launch(intent)
             }
             withContext(Dispatchers.Main) {
                 listener_.onDismissDialog()

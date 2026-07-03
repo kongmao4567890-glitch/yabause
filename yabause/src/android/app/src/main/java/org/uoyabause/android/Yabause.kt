@@ -505,9 +505,9 @@ class Yabause : AppCompatActivity(),
         var fileDesc = -1
         val uriString: String? = intent.getStringExtra("org.uoyabause.android.FileNameUri")
         if (uriString != null) {
-            val fnameIndex = uriString.lastIndexOf("%2F", ignoreCase = true)
-            val fname = uriString.substring(fnameIndex + 3)
             val uri = Uri.parse(uriString)
+            // Extract filename from URI, properly decoding percent-encoded characters (including Chinese)
+            val fname = uri.lastPathSegment ?: ""
             var apath = ""
             try {
                     mParcelFileDescriptor = contentResolver.openFileDescriptor(uri, "r")
@@ -2242,23 +2242,35 @@ class Yabause : AppCompatActivity(),
             return null
         }
 
-        val decodedResult: String = URLDecoder.decode(fileName, "UTF-8")
+        // Use Uri.decode instead of URLDecoder.decode to avoid converting '+' to space
+        val decodedResult: String = Uri.decode(fileName)
 
         if (currentDocumentUri == null) {
+            Log.e(TAG, "getFileDescriptorPath: currentDocumentUri is null, cannot resolve $decodedResult")
             return null
         }
 
         val dir = DocumentFile.fromTreeUri(YabauseApplication.appContext, currentDocumentUri!!)
         if (dir == null) {
+            Log.e(TAG, "getFileDescriptorPath: DocumentFile.fromTreeUri returned null")
             return null
         }
 
-        // for (file in dir!!.listFiles()) {
-        //    Log.d("Yabause", "Found file " + file.name + " with size " + file.length())
-        // }
-
         val files = dir.findFile(decodedResult)
         if (files == null) {
+            // Try case-insensitive search as fallback
+            val lowerName = decodedResult.lowercase()
+            for (f in dir.listFiles()) {
+                if (f.name?.lowercase() == lowerName) {
+                    val parcelFileDescriptor = contentResolver.openFileDescriptor(f.uri, "r")
+                    if (parcelFileDescriptor != null) {
+                        subFileDescripters.add(parcelFileDescriptor)
+                        return "/proc/self/fd/${parcelFileDescriptor.fd}"
+                    }
+                    break
+                }
+            }
+            Log.e(TAG, "getFileDescriptorPath: file not found: $decodedResult")
             return null
         }
 

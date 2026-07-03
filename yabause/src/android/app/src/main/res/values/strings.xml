@@ -393,7 +393,7 @@
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
     <string name="do_you_want_to_install">Do you want to install?</string>
-    <string name="only_chd_is_supported_for_load_game">You can choose chd,zip file.</string>
+    <string name="only_chd_is_supported_for_load_game">Supported formats: chd, bin, iso, img, cue, ccd, mds, mdf, zip</string>
     <string name="install_game_message">If you install, you can play from this game list directly. It takes up  </string>
     <string name="install_game_message_after">MB of storage space.</string>
 

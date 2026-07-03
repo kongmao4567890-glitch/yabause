@@ -415,7 +415,7 @@
     <string name="free_space">可用空间</string>
     <string name="no_enough_free_space">可用空间不足。</string>
     <string name="select_install_location">安装位置</string>
-    <string name="only_chd_is_supported_for_load_game">您可以选择 chd、zip 文件。</string>
+    <string name="only_chd_is_supported_for_load_game">支持的格式：chd、bin、iso、img、cue、ccd、mds、mdf、zip</string>
     <string name="install_game_message">安装后，您可以直接从此游戏列表中玩。它将占用 </string>
     <string name="install_game_message_after">MB 的存储空间。</string>
     <string name="updating">更新中...</string>
