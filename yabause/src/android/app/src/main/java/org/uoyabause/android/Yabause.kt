@@ -959,7 +959,9 @@ class Yabause : AppCompatActivity(),
                 val save_path = YabauseStorage.storage.screenshotPath
                 val current_gamecode = YabauseRunnable.getCurrentGameCode()
                 if (current_gamecode != null) {
-                    val screen_shot_save_path = "$save_path$current_gamecode.png"
+                    // Use timestamp in filename so Glide sees a new path and reloads
+                    val timestamp = System.currentTimeMillis()
+                    val screen_shot_save_path = "$save_path${current_gamecode}_$timestamp.png"
                     if (YabauseRunnable.screenshot(screen_shot_save_path) == 0) {
                         try {
                             // Update GameInfo in database with screenshot path as cover image
@@ -974,8 +976,14 @@ class Yabause : AppCompatActivity(),
                             if (lookupPath != null) {
                                 val gi = dao.findByFilePath(lookupPath)
                                 if (gi != null) {
+                                    // Delete old screenshot file if it was a local screenshot
+                                    val oldUrl = gi.image_url
+                                    if (oldUrl != null && oldUrl.startsWith(save_path)) {
+                                        try { File(oldUrl).delete() } catch (_: Exception) {}
+                                    }
                                     gi.image_url = screen_shot_save_path
                                     dao.update(gi)
+                                    cachedGameTitle = gi.game_title
                                     // Show success toast
                                     runOnUiThread {
                                         android.widget.Toast.makeText(this, R.string.menu_set_as_gametitle, android.widget.Toast.LENGTH_SHORT).show()

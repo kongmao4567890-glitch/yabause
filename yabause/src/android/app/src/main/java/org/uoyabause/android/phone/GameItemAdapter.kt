@@ -357,7 +357,10 @@ class GameItemAdapter(private val originalDataSet: MutableList<GameInfo?>?) :
                 } else {
                     Glide.with(holder.rootview.context)
                         .load(game.image_url?.let { File(it) })
-                        .apply(RequestOptions.centerCropTransform())
+                        .apply(RequestOptions()
+                            .centerCropTransform()
+                            .skipMemoryCache(true)
+                            .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.NONE))
                         .into(imageView)
                 }
             }
