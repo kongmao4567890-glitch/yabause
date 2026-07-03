@@ -45,9 +45,17 @@ class YabauseApplication : MultiDexApplication() {
         super.onCreate()
         appContext = applicationContext
 
-        GameInfo.initSigin(appContext)
+        try {
+            GameInfo.initSigin(appContext)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
-        FirebaseApp.initializeApp(applicationContext)
+        try {
+            FirebaseApp.initializeApp(applicationContext)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
 
         // Log.d(TAG,"Firebase token: " + FirebaseInstanceId.getInstance().getToken() );
     } // To enable debug logging use: adb shell setprop log.tag.GAv4 DEBUG

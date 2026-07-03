@@ -116,23 +116,31 @@ class StartupActivity : AppCompatActivity() {
             Log.e(TAG, "This device is not supported.")
         }
         // Log.d(TAG, "InstanceID token: " + FirebaseInstanceId.getInstance().token)
-        val auth = FirebaseAuth.getInstance()
-        if (auth.currentUser != null) {
-            // already signed in
-        } else {
-            // not signed in
+        try {
+            val auth = FirebaseAuth.getInstance()
+            if (auth.currentUser != null) {
+                // already signed in
+            } else {
+                // not signed in
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
 
         val r = Runnable {
-            mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance()
-            mFirebaseRemoteConfig!!.setDefaultsAsync(R.xml.config)
-            val cacheExpiration: Long = 3600 // 1 hour in seconds.
-            mFirebaseRemoteConfig!!.fetch(cacheExpiration)
-                .addOnCompleteListener(this) { task ->
-                    if (task.isSuccessful) {
-                        mFirebaseRemoteConfig!!.fetchAndActivate()
+            try {
+                mFirebaseRemoteConfig = FirebaseRemoteConfig.getInstance()
+                mFirebaseRemoteConfig!!.setDefaultsAsync(R.xml.config)
+                val cacheExpiration: Long = 3600 // 1 hour in seconds.
+                mFirebaseRemoteConfig!!.fetch(cacheExpiration)
+                    .addOnCompleteListener(this) { task ->
+                        if (task.isSuccessful) {
+                            mFirebaseRemoteConfig!!.fetchAndActivate()
+                        }
                     }
-                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
 
             val uiModeManager = getSystemService(UI_MODE_SERVICE) as UiModeManager
             val sharedPrefLocal = PreferenceManager.getDefaultSharedPreferences(this@StartupActivity)

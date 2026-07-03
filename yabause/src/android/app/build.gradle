@@ -22,7 +22,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.firebase.crashlytics")
     id 'org.jetbrains.kotlin.kapt'
     //id("com.dicedmelon.gradle.jacoco-android")
 }
@@ -142,7 +141,6 @@ android {
         }
         debug {
             debuggable true
-            testCoverageEnabled true
             applicationIdSuffix ".debug"
             versionNameSuffix '-DEBUG'
             resValue "string", "app_name", "Yaba Sanshiro 2 debug"
@@ -257,7 +255,7 @@ dependencies {
     implementation 'androidx.multidex:multidex:2.0.1'
     implementation 'com.google.firebase:firebase-crashlytics-ktx'
     implementation 'com.google.firebase:firebase-analytics-ktx'
-    implementation 'com.google.firebase:firebase-crashlytics-ndk'
+    //implementation 'com.google.firebase:firebase-crashlytics-ndk'
     //implementation 'net.cattaka:adapter-toolbox:0.5.2'
     implementation "com.google.android.material:material:1.12.0"
     implementation 'com.google.android.play:review-ktx:2.0.1'

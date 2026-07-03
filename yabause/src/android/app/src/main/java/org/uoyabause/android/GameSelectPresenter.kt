@@ -282,7 +282,11 @@ class GameSelectPresenter(
             //    photo_url_ = auth.getCurrentUser().getPhotoUrl();
             // }
             baseref.child(baseurl).child("android_token").setValue(token)
-            FirebaseCrashlytics.getInstance().setUserId(username_ + "_" + currentUser.email)
+            try {
+                FirebaseCrashlytics.getInstance().setUserId(username_ + "_" + currentUser.email)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
             mFirebaseAnalytics.setUserId(username_ + "_" + currentUser.email)
             mFirebaseAnalytics.setUserProperty("name", username_ + "_" + currentUser.email)
             val activity: Activity? = target_.activity
@@ -299,7 +303,11 @@ class GameSelectPresenter(
 
             // startActivity(SignedInActivity.createIntent(this, response));
             // val application = target_.activity!!.application as YabauseApplication
-            FirebaseCrashlytics.getInstance().setUserId(username_ + "_" + currentUser.email)
+            try {
+                FirebaseCrashlytics.getInstance().setUserId(username_ + "_" + currentUser.email)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
 
             if (authEmitter != null) {
                 authEmitter!!.onSuccess(currentUser)
@@ -848,7 +856,11 @@ class GameSelectPresenter(
                     else -> auth.currentUser!!.uid
                 }
 
-                FirebaseCrashlytics.getInstance().setUserId(username + "_" + auth.currentUser!!.email)
+                try {
+                    FirebaseCrashlytics.getInstance().setUserId(username + "_" + auth.currentUser!!.email)
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
                 mFirebaseAnalytics.setUserId(username + "_" + auth.currentUser!!.email)
                 mFirebaseAnalytics.setUserProperty("name", username + "_" + auth.currentUser!!.email)
 
@@ -907,7 +919,11 @@ class GameSelectPresenter(
                 else -> auth.currentUser!!.uid
             }
 
-            FirebaseCrashlytics.getInstance().setUserId(username + "_" + auth.currentUser!!.email)
+            try {
+                FirebaseCrashlytics.getInstance().setUserId(username + "_" + auth.currentUser!!.email)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
             mFirebaseAnalytics.setUserId(username + "_" + auth.currentUser!!.email)
             mFirebaseAnalytics.setUserProperty("name", username + "_" + auth.currentUser!!.email)
         }

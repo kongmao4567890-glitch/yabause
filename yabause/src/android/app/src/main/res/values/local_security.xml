@@ -21,7 +21,7 @@
 <resources>
     <string name="basic_user" translatable="false" >jfonvwe</string>
     <string name="basic_password" translatable="false" >in23408vnwer</string>
-    <string name="ad_app_id" translatable="false" >ca-app-pub-1</string>
+    <string name="ad_app_id" translatable="false" >ca-app-pub-3940256099942544~3347511713</string>
     <string name="banner_ad_unit_id" translatable="false" >ca-app-pub-2</string>
     <string name="banner_ad_unit_id2" translatable="false" >ca-app-pub-3</string>
     <string name="global_tracker" translatable="false" >UA-9999999-1</string>
