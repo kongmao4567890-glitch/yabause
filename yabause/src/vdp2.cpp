@@ -104,7 +104,7 @@ static s64 diffticks = 0;
 static u32 framecount = 0;
 static s64 onesecondticks = 0;
 static int enableFrameLimit = 1;
-static int frameLimitShift = 0;
+static int frameLimitMultiplier = 10; // 10 = 1x, 20 = 2x, 25 = 2.5x, 30 = 3x, etc.
 
 //#define LOG yprintf
 #define PROFILE_RENDERING 0
@@ -705,30 +705,72 @@ void VDP2genVRamCyclePattern() {
   }
 }
 
-// 0 .. 60Hz, 1 .. no limit, 2 .. 2x(120Hz)
+// 0 .. 60Hz(1x), 1 .. no limit, 2 .. 2x, 3 .. 2.5x, 4 .. 3x, 5 .. 3.5x, 6 .. 4x, 7 .. 4.5x, 8 .. 5x
 void VDP2SetFrameLimit(int mode) {
   switch (mode) {
   case 0:
     enableFrameLimit = 1;
-    frameLimitShift = 0; // 60Hz
+    frameLimitMultiplier = 10; // 1x = 60Hz
     framecount = 0;
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
     break;
   case 1:
     enableFrameLimit = 0;
-    frameLimitShift = 0;
+    frameLimitMultiplier = 10;
     break;
   case 2:
     enableFrameLimit = 1;
-    frameLimitShift = 1; // 120Hz
+    frameLimitMultiplier = 20; // 2x = 120Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 3:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 25; // 2.5x = 150Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 4:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 30; // 3x = 180Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 5:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 35; // 3.5x = 210Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 6:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 40; // 4x = 240Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 7:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 45; // 4.5x = 270Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 8:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 50; // 5x = 300Hz
     framecount = 0;
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
     break;
   default:
     enableFrameLimit = 1;
-    frameLimitShift = 0;
+    frameLimitMultiplier = 10;
     framecount = 0;
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
@@ -740,20 +782,24 @@ void VDP2SetFrameLimit(int mode) {
 void frameSkipAndLimit() {
   if (FrameAdvanceVariable == 0 && enableFrameLimit )
   {
-    const u32 fps = (yabsys.IsPal ? 50 : 60) << frameLimitShift ;
+    // Use multiplier-based calculation: fps = baseFps * multiplier / 10
+    // OneFrameTime adjusted = OneFrameTime * 10 / multiplier
+    const u32 baseFps = (yabsys.IsPal ? 50 : 60);
+    const u32 fps = baseFps * frameLimitMultiplier / 10;
+    const u64 adjustedFrameTime = yabsys.OneFrameTime * 10 / frameLimitMultiplier;
     framecount++;
     curticks = YabauseGetTicks();
     if (framecount > fps)
     {
       onesecondticks -= yabsys.tickfreq;
-      if (onesecondticks > (s64)( (yabsys.OneFrameTime>>frameLimitShift)  * 4)) {
+      if (onesecondticks > (s64)(adjustedFrameTime * 4)) {
         onesecondticks = 0;
       }
       framecount = 1;
-      lastticks = (curticks - (yabsys.OneFrameTime>>frameLimitShift) );
+      lastticks = (curticks - adjustedFrameTime);
     }
 
-    u64 targetTime = ( (yabsys.OneFrameTime>>frameLimitShift)  * (u64)framecount);
+    u64 targetTime = (adjustedFrameTime * (u64)framecount);
     if (framecount == fps) {
       targetTime = yabsys.tickfreq; // 1sec
     }

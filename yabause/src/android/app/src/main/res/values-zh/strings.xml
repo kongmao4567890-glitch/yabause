@@ -373,7 +373,13 @@
     <string name="frameLimit">速度限制</string>
     <string name="chooseFrameLimit">选择帧率限制模式</string>
     <string name="frameLimitNormal">正常</string>
-    <string name="frameLimitDouble">双倍</string>
+    <string name="frameLimitDouble">双倍 (2x)</string>
+    <string name="frameLimit2_5x">2.5倍</string>
+    <string name="frameLimit3x">3倍</string>
+    <string name="frameLimit3_5x">3.5倍</string>
+    <string name="frameLimit4x">4倍</string>
+    <string name="frameLimit4_5x">4.5倍</string>
+    <string name="frameLimit5x">5倍</string>
     <string name="frameLimitUnLimited">无限制</string>
     <string name="vulkan_video_interface">Vulkan</string>
 

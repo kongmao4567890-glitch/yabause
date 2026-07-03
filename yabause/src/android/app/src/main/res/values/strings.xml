@@ -403,7 +403,13 @@
     <string name="frameLimit">Speed Limit</string>
     <string name="chooseFrameLimit">Choose frame limit mode</string>
     <string name="frameLimitNormal">Normal</string>
-    <string name="frameLimitDouble">Double</string>
+    <string name="frameLimitDouble">Double (2x)</string>
+    <string name="frameLimit2_5x">2.5x</string>
+    <string name="frameLimit3x">3x</string>
+    <string name="frameLimit3_5x">3.5x</string>
+    <string name="frameLimit4x">4x</string>
+    <string name="frameLimit4_5x">4.5x</string>
+    <string name="frameLimit5x">5x</string>
     <string name="frameLimitUnLimited">No Limit</string>
     <string name="pro_version_available">Pro version is available!\n\n * No limit install count\n * Save/Load game state between devices\n * No advertisement\n\n</string>
     <string name="select_install_location">Install Location</string>
