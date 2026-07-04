@@ -85,6 +85,10 @@ class GameItemAdapter(private val originalDataSet: MutableList<GameInfo?>?) :
     // 選択されたアイテムの位置
     private var selectedPosition = -1
 
+    // Double-click tracking
+    private var lastClickPosition = -1
+    private var lastClickTime: Long = 0
+
     fun setViewMode(mode: Int) {
         if (viewMode != mode) {
             viewMode = mode
@@ -366,10 +370,20 @@ class GameItemAdapter(private val originalDataSet: MutableList<GameInfo?>?) :
                 }
             }
 
-            // Set click listener (selection only, no game start)
+            // Set click listener - single click selects, double click starts game
             holder.rootview.setOnClickListener {
-                // 選択状態を更新（ゲーム開始はしない）
-                setSelectedPosition(position)
+                // Check if this is a double click (within 500ms of last click on same position)
+                if (position == lastClickPosition &&
+                    System.currentTimeMillis() - lastClickTime < 500) {
+                    // Double click - start game
+                    lastClickTime = 0
+                    mListener?.onGameStart(game)
+                } else {
+                    // Single click - select item
+                    lastClickPosition = position
+                    lastClickTime = System.currentTimeMillis()
+                    setSelectedPosition(position)
+                }
             }
         }
 
