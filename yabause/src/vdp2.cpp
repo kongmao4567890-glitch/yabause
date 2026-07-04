@@ -725,11 +725,11 @@ void VDP2SetFrameLimit(int mode) {
     lastticks = YabauseGetTicks();
     break;
   case 1:
-    // Max Speed: 5x is the fastest safe speed (skip 4, render 1)
-    // Higher speeds cause black screen because Vdp1EraseWrite clears
-    // the buffer during skips but Vdp2DrawScreens is dummy (no composite)
+    // Max Speed: 8x with EraseWrite skip fix (skip 7, render 1)
+    // EraseWrite is skipped during frame skip to preserve display buffer,
+    // allowing up to 8 consecutive skips without black screen
     enableFrameLimit = 1;
-    frameLimitMultiplier = 50; // 5x = 300Hz
+    frameLimitMultiplier = 80; // 8x = 480Hz
     framecount = 0;
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
@@ -865,15 +865,10 @@ void frameSkipAndLimit() {
 
     // Scale frame skip count with multiplier for high speeds
     // At 2x skip 1, 3x skip 2, 4x skip 3, etc.
-    // Cap at 4 consecutive skips to prevent black screen:
-    // During skips, Vdp2DrawScreens is dummy (no composite) but Vdp1EraseWrite
-    // still clears the display buffer. Too many consecutive skips = erased
-    // buffer never gets composited = black screen.
-    // Speed is barely affected: CPU still runs at target speed, just renders
-    // 1 extra frame per cycle (e.g. 7x: skip 4 render 1 instead of skip 6 render 1)
+    // Cap at 8: with EraseWrite skip fix, up to 8 consecutive skips are safe
     int framesToSkip = (frameLimitMultiplier / 10) - 1;
     if (framesToSkip < 1) framesToSkip = 1;
-    if (framesToSkip > 4) framesToSkip = 4;
+    if (framesToSkip > 8) framesToSkip = 8;
 
     if ( autoframeskipenab && (onesecondticks + diffticks) > targetTime )
     {
@@ -1418,9 +1413,12 @@ void vdp2VBlankOUT(void) {
 
   VIDCore->Vdp2DrawStart();
   
-  // VBlank Erase
-  if (Vdp1External.vbalnk_erase ||  // VBlank Erace (VBE1) 
-    ((Vdp1Regs->FBCR & 2) == 0)) {  // One cycle mode
+  // VBlank Erase - skip when frame skipping to preserve display buffer
+  // (EraseWrite clears readframe=display buffer; skipping it during frame
+  //  skip prevents black screen at high speeds, since Vdp2DrawScreens is
+  //  dummy and won't re-composite the cleared buffer)
+  if (!skipnextframe && (Vdp1External.vbalnk_erase ||  // VBlank Erace (VBE1) 
+    ((Vdp1Regs->FBCR & 2) == 0))) {  // One cycle mode
     VIDCore->Vdp1EraseWrite();
   }
 
@@ -1430,7 +1428,9 @@ void vdp2VBlankOUT(void) {
   {
     vdp1_frame++;
     if (Vdp1External.manualerase) {  // Manual Erace (FCM1 FCT0) Just before frame changing
-      VIDCore->Vdp1EraseWrite();
+      if (!skipnextframe) {
+        VIDCore->Vdp1EraseWrite();
+      }
       Vdp1External.manualerase = 0;
     }
 
