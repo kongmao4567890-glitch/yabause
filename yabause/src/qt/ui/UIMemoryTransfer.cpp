@@ -143,7 +143,7 @@ void UIMemoryTransfer::accept()
    if (rbDownload->isChecked())
    {
       // Let's do a ram dump
-      MappedMemorySave(leFile->text().toLatin1(), startAddress, endAddress - startAddress);
+      MappedMemorySave(leFile->text().toUtf8(), startAddress, endAddress - startAddress);
    }
    else
    {
@@ -152,11 +152,11 @@ void UIMemoryTransfer::accept()
       // Is this a program?
       if (cbPC->checkState() == Qt::Checked)
       {
-         MappedMemoryLoadExec(leFile->text().toLatin1(), startAddress);
+         MappedMemoryLoadExec(leFile->text().toUtf8(), startAddress);
       }
       else
       {
-         MappedMemoryLoad(leFile->text().toLatin1(), startAddress);
+         MappedMemoryLoad(leFile->text().toUtf8(), startAddress);
       }
    }
 

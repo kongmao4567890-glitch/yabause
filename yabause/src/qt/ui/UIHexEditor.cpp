@@ -1008,7 +1008,7 @@ bool UIHexEditorWnd::saveTab(QString filename)
 
 bool UIHexEditorWnd::saveMemory(QString filename, u32 startAddress, u32 endAddress)
 {
-	FILE *fp = fopen_utf8(filename.toLatin1(), "wb");
+	FILE *fp = fopen_utf8(filename.toUtf8(), "wb");
 	u32 size = (u32)(endAddress - startAddress);
 
 	if (fp == NULL)

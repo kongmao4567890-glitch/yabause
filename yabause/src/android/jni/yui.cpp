@@ -1232,7 +1232,15 @@ extern "C" jstring Java_org_uoyabause_android_YabauseRunnable_savestate_1compres
     pthread_cond_wait(&g_cndFuncSync, &g_mtxFuncSync);
     pthread_mutex_unlock(&g_mtxFuncSync);
 
-    return env->NewStringUTF((const char *)last_state_filename);
+    {
+        char *sanitized = sanitize_utf8((const char *)last_state_filename);
+        if (sanitized != NULL) {
+            jstring result = env->NewStringUTF(sanitized);
+            free(sanitized);
+            return result;
+        }
+        return env->NewStringUTF("");
+    }
 }
 
 extern "C" jint Java_org_uoyabause_android_YabauseRunnable_loadstate_1compress(JNIEnv *env, jobject thiz, jstring path)
@@ -1274,7 +1282,15 @@ extern "C" jstring Java_org_uoyabause_android_YabauseRunnable_savestate(JNIEnv *
     pthread_cond_wait(&g_cndFuncSync, &g_mtxFuncSync);
     pthread_mutex_unlock(&g_mtxFuncSync);
 
-    return env->NewStringUTF((const char *)last_state_filename);
+    {
+        char *sanitized = sanitize_utf8((const char *)last_state_filename);
+        if (sanitized != NULL) {
+            jstring result = env->NewStringUTF(sanitized);
+            free(sanitized);
+            return result;
+        }
+        return env->NewStringUTF("");
+    }
 }
 
 extern "C" jint Java_org_uoyabause_android_YabauseRunnable_loadstate(JNIEnv *env, jobject thiz, jstring path)
@@ -2069,27 +2085,18 @@ extern "C"
             sprintf(buf, "%s(%s)", cdip->gamename, cdip->cdinfo);
         }
 
-        // Sanitize: replace any non-ASCII/non-printable bytes to prevent
-        // NewStringUTF from crashing on invalid modified UTF-8 sequences.
-        // (Some game discs have Shift-JIS bytes in IP.BIN that are not valid UTF-8.)
-        for (int i = 0; buf[i] != '\0'; i++) {
-            unsigned char c = (unsigned char)buf[i];
-            // Allow tab/newline/carriage return
-            if (c == '\t' || c == '\n' || c == '\r')
-                continue;
-            // Allow printable ASCII (0x20-0x7E)
-            if (c >= 0x20 && c <= 0x7E)
-                continue;
-            // Allow valid UTF-8 continuation bytes (0x80-0xBF) and
-            // leading bytes (0xC0-0xF7). Replace anything else with '?'.
-            if (c >= 0x80 && c <= 0xF7)
-                continue;
-            buf[i] = '?';
-        }
-
-        rtn = env->NewStringUTF(buf);
+        // Sanitize using sanitize_utf8() for proper UTF-8 sequence validation.
+        // The previous inline byte-level check allowed invalid UTF-8 sequences
+        // (e.g. a 0x83 leading byte followed by an ASCII byte in Shift-JIS)
+        // which still crash NewStringUTF via SIGABRT.
+        char *sanitized = sanitize_utf8(buf);
         free(buf);
-        return rtn;
+        if (sanitized != NULL) {
+            rtn = env->NewStringUTF(sanitized);
+            free(sanitized);
+            return rtn;
+        }
+        return NULL;
     }
 
     void Java_org_uoyabause_android_YabauseRunnable_updateCheat(JNIEnv *env, jobject object, jobjectArray stringArray)
@@ -2140,9 +2147,18 @@ extern "C"
                 "area:\"%s\",game_title:\"%s\",input_device:\"%s\"}}",
                 cdip->company, cdip->itemnum, cdip->version, cdip->date, cdip->cdinfo, cdip->region, cdip->gamename, cdip->peripheral);
 
-        rtn = env->NewStringUTF(buf);
+        // Sanitize: IP.BIN fields (gamename, company, region, etc.) may contain
+        // Shift-JIS or GBK bytes that are not valid Modified UTF-8, which would
+        // cause SIGABRT in NewStringUTF. This is the same crash that occurs when
+        // running games whose filenames contain Chinese characters.
+        char *sanitized = sanitize_utf8(buf);
         free(buf);
-        return rtn;
+        if (sanitized != NULL) {
+            rtn = env->NewStringUTF(sanitized);
+            free(sanitized);
+            return rtn;
+        }
+        return NULL;
     }
 
 #if 0
