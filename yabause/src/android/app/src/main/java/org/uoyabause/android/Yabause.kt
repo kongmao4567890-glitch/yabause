@@ -317,6 +317,7 @@ class Yabause : AppCompatActivity(),
     }
 
     var mParcelFileDescriptor: ParcelFileDescriptor? = null
+    var mExGameInputStream: java.io.FileInputStream? = null
     var subFileDescripters = mutableListOf<ParcelFileDescriptor>()
 
     private val apiscope = CoroutineScope(Dispatchers.IO)
@@ -567,6 +568,8 @@ class Yabause : AppCompatActivity(),
                 Log.e(TAG, key + " : " + if (bundle[key] != null) bundle[key] else "NULL")
             }
         }
+        var fileDesc = -1
+
         val game = intent.getStringExtra("org.uoyabause.android.FileName")
         if (game != null && game.length > 0) {
             val storage = YabauseStorage.storage
@@ -574,10 +577,30 @@ class Yabause : AppCompatActivity(),
         } else gamePath = ""
         val exgame = intent.getStringExtra("org.uoyabause.android.FileNameEx")
         if (exgame != null) {
-            gamePath = exgame
+            // For FileNameEx (direct filesystem path, used by double-click in game list),
+            // we must convert it to a /proc/self/fd/ path. This is critical because:
+            // 1. On Android 10+ (scoped storage), native fopen() may not have direct
+            //    filesystem access to external storage paths.
+            // 2. The /proc/self/fd/ mechanism works universally because the file is
+            //    already opened by the Java side.
+            // 3. This makes the behavior identical to the FileNameUri (SAF) path,
+            //    which works reliably.
+            try {
+                val fis = java.io.FileInputStream(java.io.File(exgame))
+                val fd = fis.fd
+                val fname = java.io.File(exgame).name
+                gamePath = "/proc/self/fd/$fd;$fname"
+                fileDesc = fd
+                // Store the FileInputStream to prevent GC and keep fd valid
+                mExGameInputStream = fis
+                Log.d(TAG, "FileNameEx converted to fd path: $gamePath")
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to open FileNameEx as fd: ${e.message}", e)
+                // Fall back to direct path (may fail on scoped storage)
+                gamePath = exgame
+            }
         }
 
-        var fileDesc = -1
         val uriString: String? = intent.getStringExtra("org.uoyabause.android.FileNameUri")
         if (uriString != null) {
             val uri = Uri.parse(uriString)
@@ -1368,6 +1391,8 @@ class Yabause : AppCompatActivity(),
                         waitingResult = false
                         //Your code to run in GUI thread here
                         mParcelFileDescriptor?.close()
+                        mExGameInputStream?.close()
+                        mExGameInputStream = null
                         subFileDescripters.forEach {
                             it.close()
                         }
@@ -1792,6 +1817,8 @@ class Yabause : AppCompatActivity(),
                     if (tmpParcelFileDescriptor != null) {
                         gamePath = "/proc/self/fd/${tmpParcelFileDescriptor.getFd()};${data.data}"
                         mParcelFileDescriptor?.close()
+                        mExGameInputStream?.close()
+                        mExGameInputStream = null
                         mParcelFileDescriptor = tmpParcelFileDescriptor
                     } else {
                         Snackbar.make(
