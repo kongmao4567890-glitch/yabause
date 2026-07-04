@@ -90,6 +90,68 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 JavaVM *yvm;
 static jobject yabause = NULL;
 
+// Sanitize a byte string to valid Modified UTF-8 before passing to NewStringUTF.
+// Replaces invalid UTF-8 bytes (e.g. GBK-encoded Chinese) with '?'.
+// This prevents SIGABRT from ART's NewStringUTF validation.
+// Returns a malloc'd string that the caller must free, or NULL on failure.
+static char *sanitize_utf8(const char *input) {
+    if (input == NULL) return NULL;
+    size_t len = strlen(input);
+    char *output = (char *)malloc(len + 1);
+    if (output == NULL) return NULL;
+    
+    size_t i = 0, o = 0;
+    while (i < len) {
+        unsigned char c = (unsigned char)input[i];
+        
+        if (c < 0x80) {
+            // ASCII - always valid
+            output[o++] = input[i++];
+        } else if ((c & 0xE0) == 0xC0) {
+            // 2-byte sequence: needs 1 continuation byte
+            if (i + 1 < len && ((unsigned char)input[i+1] & 0xC0) == 0x80) {
+                output[o++] = input[i++];
+                output[o++] = input[i++];
+            } else {
+                output[o++] = '?';
+                i++;
+            }
+        } else if ((c & 0xF0) == 0xE0) {
+            // 3-byte sequence: needs 2 continuation bytes
+            if (i + 2 < len && 
+                ((unsigned char)input[i+1] & 0xC0) == 0x80 &&
+                ((unsigned char)input[i+2] & 0xC0) == 0x80) {
+                output[o++] = input[i++];
+                output[o++] = input[i++];
+                output[o++] = input[i++];
+            } else {
+                output[o++] = '?';
+                i++;
+            }
+        } else if ((c & 0xF8) == 0xF0) {
+            // 4-byte sequence: needs 3 continuation bytes
+            if (i + 3 < len &&
+                ((unsigned char)input[i+1] & 0xC0) == 0x80 &&
+                ((unsigned char)input[i+2] & 0xC0) == 0x80 &&
+                ((unsigned char)input[i+3] & 0xC0) == 0x80) {
+                output[o++] = input[i++];
+                output[o++] = input[i++];
+                output[o++] = input[i++];
+                output[o++] = input[i++];
+            } else {
+                output[o++] = '?';
+                i++;
+            }
+        } else {
+            // Invalid leading byte (0x80-0xBF continuation byte or 0xF8+)
+            output[o++] = '?';
+            i++;
+        }
+    }
+    output[o] = '\0';
+    return output;
+}
+
 static char mpegpath[256] = "\0";
 static char cartpath[256] = "\0";
 static char screenShotFilename[256] = "\0";
@@ -519,7 +581,14 @@ extern "C" const char *GetFileDescriptorPath(const char *fileName)
         }
     }
 
-    jstring strj = env->NewStringUTF(fileName);
+    // Sanitize fileName to valid UTF-8 before NewStringUTF.
+    // CUE files from Chinese Windows may contain GBK-encoded filenames;
+    // NewStringUTF would SIGABRT on invalid Modified UTF-8 bytes.
+    char *sanitized = sanitize_utf8(fileName);
+    if (sanitized == NULL) return NULL;
+    
+    jstring strj = env->NewStringUTF(sanitized);
+    free(sanitized);
 
     yclass = env->GetObjectClass(yabause);
     getFileDescriptorPath = env->GetMethodID(yclass, "getFileDescriptorPath", "(Ljava/lang/String;)Ljava/lang/String;");
@@ -588,7 +657,14 @@ void onBackupWrite(const char *fname, char *before, char *after, int size)
     }
     env->ReleaseByteArrayElements(jniAfter, dst, 0);
 
-    jstring jniFname = env->NewStringUTF(fname);
+    char *sanitized_fname = sanitize_utf8(fname);
+    if (sanitized_fname == NULL)
+    {
+        __android_log_print(ANDROID_LOG_ERROR, "yabause", "Failed to sanitize fname for onBackupWrite");
+        return;
+    }
+    jstring jniFname = env->NewStringUTF(sanitized_fname);
+    free(sanitized_fname);
     if (jniFname == NULL)
     {
         __android_log_print(ANDROID_LOG_ERROR, "yabause", "Failed to NewStringUTF for fname");
@@ -628,7 +704,15 @@ extern "C" void YuiErrorMsg(const char *string)
 
     yclass = env->GetObjectClass(yabause);
     errorMsg = env->GetMethodID(yclass, "errorMsg", "(Ljava/lang/String;)V");
-    message = env->NewStringUTF(string);
+    // Sanitize to prevent SIGABRT if string contains non-UTF-8 bytes
+    // (e.g. GBK filenames from CUE files passed to YabSetError)
+    char *sanitized = sanitize_utf8(string);
+    if (sanitized != NULL) {
+        message = env->NewStringUTF(sanitized);
+        free(sanitized);
+    } else {
+        message = env->NewStringUTF("Unknown error");
+    }
     env->CallVoidMethod(yabause, errorMsg, message);
     yvm->DetachCurrentThread();
 }
@@ -955,7 +1039,15 @@ extern "C" JNIEXPORT void JNICALL Java_org_uoyabause_android_YabauseRunnable_clo
 
 extern "C" JNIEXPORT jstring JNICALL Java_org_uoyabause_android_YabauseRunnable_getCurrentGameCode(JNIEnv *env)
 {
-    return (jstring)env->NewStringUTF((const char *)Cs2GetCurrentGmaecode());
+    const char *code = (const char *)Cs2GetCurrentGmaecode();
+    if (code == NULL)
+        return env->NewStringUTF("");
+    char *sanitized = sanitize_utf8(code);
+    if (sanitized == NULL)
+        return env->NewStringUTF("");
+    jstring result = env->NewStringUTF(sanitized);
+    free(sanitized);
+    return result;
 }
 
 static int enableautofskip = 0;
