@@ -891,10 +891,17 @@ void frameSkipAndLimit() {
       }
     }
 
-    // Scale the wait threshold proportionally to frame time
-    // (was fixed at 1000 which is too large for small frame times at high speed)
-    u64 waitThreshold = adjustedFrameTime / 10;
-    if (waitThreshold < 100) waitThreshold = 100;
+    // At 1x (and below), use the upstream's fixed threshold of 1000 to keep
+    // VBlank pacing identical to official yabause. Timing-sensitive games
+    // (e.g. Super Robot Wars F) stop triggering VDP1 when frame pacing drifts.
+    // At higher speeds the scaled threshold is still needed for small frame times.
+    u64 waitThreshold;
+    if (frameLimitMultiplier <= 10) {
+      waitThreshold = 1000;
+    } else {
+      waitThreshold = adjustedFrameTime / 10;
+      if (waitThreshold < 100) waitThreshold = 100;
+    }
     targetTime -= waitThreshold;
     if ( (onesecondticks + diffticks) < targetTime )
     {
