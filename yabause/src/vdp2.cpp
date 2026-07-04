@@ -877,10 +877,15 @@ void frameSkipAndLimit() {
 
     // Scale frame skip count with multiplier for high speeds
     // At 2x skip 1, 3x skip 2, 4x skip 3, etc.
-    // Cap at 8 to prevent black screen from excessive consecutive skips
+    // Cap at 4 consecutive skips to prevent black screen:
+    // During skips, Vdp2DrawScreens is dummy (no composite) but Vdp1EraseWrite
+    // still clears the display buffer. Too many consecutive skips = erased
+    // buffer never gets composited = black screen.
+    // Speed is barely affected: CPU still runs at target speed, just renders
+    // 1 extra frame per cycle (e.g. 7x: skip 4 render 1 instead of skip 6 render 1)
     int framesToSkip = (frameLimitMultiplier / 10) - 1;
     if (framesToSkip < 1) framesToSkip = 1;
-    if (framesToSkip > 8) framesToSkip = 8;
+    if (framesToSkip > 4) framesToSkip = 4;
 
     if ( autoframeskipenab && (onesecondticks + diffticks) > targetTime )
     {
