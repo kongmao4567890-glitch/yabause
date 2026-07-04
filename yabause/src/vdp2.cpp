@@ -725,8 +725,12 @@ void VDP2SetFrameLimit(int mode) {
     lastticks = YabauseGetTicks();
     break;
   case 1:
-    enableFrameLimit = 0;
-    frameLimitMultiplier = 10;
+    // Unlimited: use very high multiplier to skip almost all frames
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 200; // 20x = effectively unlimited
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
     break;
   case 2:
     enableFrameLimit = 1;
@@ -819,6 +823,20 @@ void VDP2SetFrameLimit(int mode) {
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
     break;
+  case 15:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 100; // 10x = 600Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
+  case 16:
+    enableFrameLimit = 1;
+    frameLimitMultiplier = 200; // 20x = 1200Hz
+    framecount = 0;
+    onesecondticks = 0;
+    lastticks = YabauseGetTicks();
+    break;
   default:
     enableFrameLimit = 1;
     frameLimitMultiplier = 10;
@@ -859,8 +877,10 @@ void frameSkipAndLimit() {
 
     // Scale frame skip count with multiplier for high speeds
     // At 2x skip 1, 3x skip 2, 4x skip 3, etc.
+    // Cap at 8 to prevent black screen from excessive consecutive skips
     int framesToSkip = (frameLimitMultiplier / 10) - 1;
     if (framesToSkip < 1) framesToSkip = 1;
+    if (framesToSkip > 8) framesToSkip = 8;
 
     if ( autoframeskipenab && (onesecondticks + diffticks) > targetTime )
     {
