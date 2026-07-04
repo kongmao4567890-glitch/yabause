@@ -424,7 +424,7 @@ class YabauseStorage private constructor() {
         }
     }
     fun generateGameListFromDirectory(dir: String?) {
-        val supportedExtensions = listOf("img", "bin", "ccd", "mds", "iso", "chd", "mdf")
+        val supportedExtensions = listOf("img", "bin", "ccd", "mds", "iso", "chd", "mdf", "cue")
 
         if (dir?.contains("content://") == true) {
             val uri = Uri.parse(dir)

@@ -1931,8 +1931,22 @@ ChdInfo * pChdInfo = NULL;
 int checkCHD(const char *filename ) {
 
   chd_file *chd;
-  chd_error error = chd_open(filename, CHD_OPEN_READ, NULL, &chd);
+  /* On Android, the path may be "/proc/self/fd/<fd>;<filename>".
+   * The external libchdr uses fopen() which cannot handle the ";<filename>" suffix.
+   * Strip it so fopen("/proc/self/fd/<fd>", "rb") is called instead. */
+  char clean_path[512];
+  strncpy(clean_path, filename, sizeof(clean_path) - 1);
+  clean_path[sizeof(clean_path) - 1] = '\0';
+#if defined(ANDROID)
+  if (strncmp(clean_path, "/proc/self/fd/", 14) == 0) {
+    char *semi = strchr(clean_path, ';');
+    if (semi) *semi = '\0';
+  }
+  CDBASE_LOG("checkCHD: filename='%s', clean_path='%s'", filename, clean_path);
+#endif
+  chd_error error = chd_open(clean_path, CHD_OPEN_READ, NULL, &chd);
   if (error != CHDERR_NONE) {
+    CDBASE_ERR("checkCHD: chd_open failed with error=%d", error);
     return -1;
   }
   chd_close(chd);
@@ -1969,8 +1983,23 @@ static int LoadCHD(const char *chd_filename, FILE *iso_file)
 
   int num_tracks = 0;
 
-  chd_error error = chd_open(chd_filename, CHD_OPEN_READ, NULL, &pChdInfo->chd);
+  chd_error error;
+  /* On Android, the path may be "/proc/self/fd/<fd>;<filename>".
+   * The external libchdr uses fopen() which cannot handle the ";<filename>" suffix.
+   * Strip it so fopen("/proc/self/fd/<fd>", "rb") is called instead. */
+  char clean_path[512];
+  strncpy(clean_path, chd_filename, sizeof(clean_path) - 1);
+  clean_path[sizeof(clean_path) - 1] = '\0';
+#if defined(ANDROID)
+  if (strncmp(clean_path, "/proc/self/fd/", 14) == 0) {
+    char *semi = strchr(clean_path, ';');
+    if (semi) *semi = '\0';
+  }
+  CDBASE_LOG("LoadCHD: chd_filename='%s', clean_path='%s'", chd_filename, clean_path);
+#endif
+  error = chd_open(clean_path, CHD_OPEN_READ, NULL, &pChdInfo->chd);
   if (error != CHDERR_NONE) {
+    CDBASE_ERR("LoadCHD: chd_open failed with error=%d", error);
     return -1;
   }
 
