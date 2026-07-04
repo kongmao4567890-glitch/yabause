@@ -1412,46 +1412,70 @@ class Yabause : AppCompatActivity(),
                         YabauseRunnable.lockGL()
 
                         updateViewLayout(resources.configuration.orientation)
-                        // Use safeGameCode and Harmony SharedPreferences to match readPreferences
+                        // Use safeGameCode and Harmony SharedPreferences to match readPreferences.
+                        // Per-game values override the global ones; when a per-game value is not
+                        // set, fall back to the global setting so global changes apply per-game.
                         val gamePreference = getHarmonySharedPreferences(safeGameCode)
+                        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this@Yabause)
                         YabauseRunnable.enableRotateScreen(
                             if (gamePreference.getBoolean(
                                     "pref_rotate_screen",
-                                    false
+                                    sharedPref.getBoolean("pref_rotate_screen", false)
                                 )
                             ) 1 else 0
                         )
-                        val fps = gamePreference.getBoolean("pref_fps", false)
+                        val fps = gamePreference.getBoolean(
+                            "pref_fps",
+                            sharedPref.getBoolean("pref_fps", false)
+                        )
                         YabauseRunnable.enableFPS(if (fps) 1 else 0)
                         Log.d(TAG, "enable FPS $fps")
 
-                        val iPg = gamePreference.getString("pref_polygon_generation", "0")?.toInt()
+                        val iPg = gamePreference.getString(
+                            "pref_polygon_generation",
+                            sharedPref.getString("pref_polygon_generation", "0")
+                        )?.toInt()
                         YabauseRunnable.setPolygonGenerationMode(iPg!!)
 
                         Log.d(TAG, "setPolygonGenerationMode $iPg")
-                        val frameskip = gamePreference.getBoolean("pref_frameskip", true)
+                        val frameskip = gamePreference.getBoolean(
+                            "pref_frameskip",
+                            sharedPref.getBoolean("pref_frameskip", true)
+                        )
                         YabauseRunnable.enableFrameskip(if (frameskip) 1 else 0)
                         Log.d(TAG, "enable enableFrameskip $frameskip")
 
-                        val aspect = gamePreference.getString("pref_aspect_rate", "0")?.toInt()
+                        val aspect = gamePreference.getString(
+                            "pref_aspect_rate",
+                            sharedPref.getString("pref_aspect_rate", "0")
+                        )?.toInt()
                         YabauseRunnable.setAspectRateMode(aspect!!)
 
-                        val resolution_setting = gamePreference.getString("pref_resolution", "0")?.toInt()
+                        val resolution_setting = gamePreference.getString(
+                            "pref_resolution",
+                            sharedPref.getString("pref_resolution", "0")
+                        )?.toInt()
                         YabauseRunnable.setResolutionMode(resolution_setting!!)
 
                         YabauseRunnable.enableComputeShader(
                             if (gamePreference.getBoolean(
                                     "pref_use_compute_shader",
-                                    false
+                                    sharedPref.getBoolean("pref_use_compute_shader", false)
                                 )
                             ) 1 else 0
                         )
                         val rbg_resolution_setting: Int? =
-                            gamePreference.getString("pref_rbg_resolution", "0")?.toInt()!!
+                            gamePreference.getString(
+                                "pref_rbg_resolution",
+                                sharedPref.getString("pref_rbg_resolution", "0")
+                            )?.toInt()!!
                         YabauseRunnable.setRbgResolutionMode(rbg_resolution_setting!!)
 
                         val frameLimitMode: Int? =
-                            gamePreference.getString("pref_frameLimit", "0")?.toInt()!!
+                            gamePreference.getString(
+                                "pref_frameLimit",
+                                sharedPref.getString("pref_frameLimit", "0")
+                            )?.toInt()!!
                         YabauseRunnable.setFrameLimitMode(frameLimitMode!!)
 
                         YabauseRunnable.unlockGL()
@@ -2168,43 +2192,59 @@ class Yabause : AppCompatActivity(),
             return
         }
 
+        // -------------------------------------------------------------------------------------
+        // Load common (global) setting first. Per-game overrides below fall back to these
+        // values, so changes made in the global settings screen take effect for every game
+        // without having to open each game's per-game settings.
+        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+
         // ------------------------------------------------------------------------------------------------
-        // Load per game setting
+        // Load per-game setting. A per-game value overrides the global one; when the per-game
+        // store does not contain a key, the global setting is used as the default.
         val key = safeGamecode
         val gamePreference = getHarmonySharedPreferences(key)
         YabauseRunnable.enableRotateScreen(
             if (gamePreference.getBoolean(
                     "pref_rotate_screen",
-                    false
+                    sharedPref.getBoolean("pref_rotate_screen", false)
                 )
             ) 1 else 0
         )
-        val fps = gamePreference.getBoolean("pref_fps", false)
+        val fps = gamePreference.getBoolean("pref_fps", sharedPref.getBoolean("pref_fps", false))
         YabauseRunnable.enableFPS(if (fps) 1 else 0)
         Log.d(TAG, "enable FPS $fps")
-        //val iPg: Int? = gamePreference.getString("pref_polygon_generation", "0")?.toInt()
-        //YabauseRunnable.setPolygonGenerationMode(iPg!!)
-        //Log.d(TAG, "setPolygonGenerationMode $iPg")
-        val frameskip = gamePreference.getBoolean("pref_frameskip", true)
+        val frameskip = gamePreference.getBoolean(
+            "pref_frameskip",
+            sharedPref.getBoolean("pref_frameskip", true)
+        )
         YabauseRunnable.enableFrameskip(if (frameskip) 1 else 0)
         Log.d(TAG, "enable enableFrameskip $frameskip")
 
-        val aspect = gamePreference.getString("pref_aspect_rate", "0")?.toInt()
+        val aspect = gamePreference.getString(
+            "pref_aspect_rate",
+            sharedPref.getString("pref_aspect_rate", "0")
+        )?.toInt()
         YabauseRunnable.setAspectRateMode(aspect!!)
 
-        val resolution_setting: Int? = gamePreference.getString("pref_resolution", "0")?.toInt()
+        val resolution_setting: Int? = gamePreference.getString(
+            "pref_resolution",
+            sharedPref.getString("pref_resolution", "0")
+        )?.toInt()
         YabauseRunnable.setResolutionMode(resolution_setting!!)
-        val rbg_resolution_setting: Int? =
-            gamePreference.getString("pref_rbg_resolution", "0")?.toInt()
+        val rbg_resolution_setting: Int? = gamePreference.getString(
+            "pref_rbg_resolution",
+            sharedPref.getString("pref_rbg_resolution", "0")
+        )?.toInt()
         YabauseRunnable.setRbgResolutionMode(rbg_resolution_setting!!)
 
-        val frameLimitMode: Int? =
-            gamePreference.getString("pref_frameLimit", "0")?.toInt()!!
+        val frameLimitMode: Int? = gamePreference.getString(
+            "pref_frameLimit",
+            sharedPref.getString("pref_frameLimit", "0")
+        )?.toInt()!!
         YabauseRunnable.setFrameLimitMode(frameLimitMode!!)
 
         // -------------------------------------------------------------------------------------
-        // Load common setting
-        val sharedPref = PreferenceManager.getDefaultSharedPreferences(this)
+        // Load common setting (sharedPref was acquired above, before per-game overrides)
         val extmemory = sharedPref.getBoolean("pref_extend_internal_memory", true)
         YabauseRunnable.enableExtendedMemory(if (extmemory) 1 else 0)
         Log.d(TAG, "enable Extended Memory $extmemory")
@@ -2270,13 +2310,16 @@ class Yabause : AppCompatActivity(),
             YabauseRunnable.enableComputeShader(1)
 
         }else{
-            val iPg: Int? = gamePreference.getString("pref_polygon_generation", "0")?.toInt()
+            val iPg: Int? = gamePreference.getString(
+                "pref_polygon_generation",
+                sharedPref.getString("pref_polygon_generation", "0")
+            )?.toInt()
             YabauseRunnable.setPolygonGenerationMode(iPg!!)
             Log.d(TAG, "setPolygonGenerationMode $iPg")
             YabauseRunnable.enableComputeShader(
                 if (gamePreference.getBoolean(
                         "pref_use_compute_shader",
-                        false
+                        sharedPref.getBoolean("pref_use_compute_shader", false)
                     )
                 ) 1 else 0
             )

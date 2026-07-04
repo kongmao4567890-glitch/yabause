@@ -230,32 +230,26 @@ class InGamePreference(val gamecode: String) : PreferenceFragmentCompat(), Share
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
 
-        if (sharedPreferences == null) {
+        if (sharedPreferences == null || key == null) {
             return
         }
 
+        // Only persist the key that actually changed. Mirroring every key here would copy
+        // stale, first-run-snapshotted values from the per-game UI store into the Harmony
+        // store that the emulator reads, silently overriding the global settings.
         val gamePreference = requireContext().getHarmonySharedPreferences(gamecode)
-
         val editor = gamePreference.edit()
-        editor.putBoolean("pref_fps", sharedPreferences.getBoolean("pref_fps", false))
-        editor.putBoolean("pref_frameskip", sharedPreferences.getBoolean("pref_frameskip", false))
-        editor.putBoolean("pref_rotate_screen", sharedPreferences.getBoolean("pref_rotate_screen", false))
-        editor.putString("pref_polygon_generation", sharedPreferences.getString("pref_polygon_generation", "0"))
-        editor.putString("pref_frameLimit", sharedPreferences.getString("pref_frameLimit", "0"))
-        val v = sharedPreferences.getString("pref_aspect_rate", "0")
-        editor.putString("pref_aspect_rate", v)
-        editor.putString(
-            "pref_resolution",
-            sharedPreferences.getString("pref_resolution", "0")
-        )
-        editor.putString(
-            "pref_rbg_resolution",
-            sharedPreferences.getString("pref_rbg_resolution", "0")
-        )
-        editor.putBoolean(
-            "pref_use_compute_shader",
-            sharedPreferences.getBoolean("pref_use_compute_shader", false)
-        )
+        when (key) {
+            "pref_fps" -> editor.putBoolean("pref_fps", sharedPreferences.getBoolean("pref_fps", false))
+            "pref_frameskip" -> editor.putBoolean("pref_frameskip", sharedPreferences.getBoolean("pref_frameskip", false))
+            "pref_rotate_screen" -> editor.putBoolean("pref_rotate_screen", sharedPreferences.getBoolean("pref_rotate_screen", false))
+            "pref_polygon_generation" -> editor.putString("pref_polygon_generation", sharedPreferences.getString("pref_polygon_generation", "0"))
+            "pref_frameLimit" -> editor.putString("pref_frameLimit", sharedPreferences.getString("pref_frameLimit", "0"))
+            "pref_aspect_rate" -> editor.putString("pref_aspect_rate", sharedPreferences.getString("pref_aspect_rate", "0"))
+            "pref_resolution" -> editor.putString("pref_resolution", sharedPreferences.getString("pref_resolution", "0"))
+            "pref_rbg_resolution" -> editor.putString("pref_rbg_resolution", sharedPreferences.getString("pref_rbg_resolution", "0"))
+            "pref_use_compute_shader" -> editor.putBoolean("pref_use_compute_shader", sharedPreferences.getBoolean("pref_use_compute_shader", false))
+        }
         editor.apply()
     }
 }
