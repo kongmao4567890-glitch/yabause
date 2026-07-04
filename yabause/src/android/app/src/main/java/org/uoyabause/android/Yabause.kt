@@ -616,9 +616,6 @@ class Yabause : AppCompatActivity(),
 
         Log.d(TAG, "File is " + gamePath)
 
-        // Start logging to file for debugging
-        startFileLogging()
-
         if (gamePath == "") {
             showInitFailedDialog(getString(R.string.no_game_file_is_selected))
             return
@@ -1533,7 +1530,6 @@ class Yabause : AppCompatActivity(),
         setResult(RESULT_OK, resultIntent)
 
         Log.v(TAG, "this is the end...")
-        stopFileLogging()
         yabauseThread?.destroy()
         super.onDestroy()
     }
@@ -1958,70 +1954,6 @@ class Yabause : AppCompatActivity(),
      * Returns the path to the cropped image, or null if cropping failed/not needed.
      */
     private var logcatProcess: Process? = null
-
-    /**
-     * Start capturing logcat output to a file for debugging.
-     * The log file is saved to the YabauseStorage log directory.
-     */
-    private fun startFileLogging() {
-        try {
-            val logDir: String = YabauseStorage.storage.rootPath + "logs/"
-            val logDirFile = java.io.File(logDir)
-            if (!logDirFile.exists()) {
-                logDirFile.mkdirs()
-            }
-            val timestamp = System.currentTimeMillis()
-            val logFile = "$logDir/yabause_log_$timestamp.txt"
-
-            // Clear previous logcat buffer
-            val clearProcess = Runtime.getRuntime().exec(arrayOf("logcat", "-c"))
-            clearProcess.waitFor()
-
-            // Start logcat capture filtering for our app's logs
-            logcatProcess = Runtime.getRuntime().exec(arrayOf(
-                "logcat", "-v", "time", "Yabause:V", "yabause:V", "yabause_native:V", "Vdp2:V",
-                "Ygl:V", "Vulkan:V", "VidSoft:V", "Scsp:V", "Sh2:V", "M68K:V", "Scu:V",
-                "AndroidRuntime:E", "System.err:W", "*:S"
-            ))
-
-            // Write to file in a background thread
-            Thread {
-                try {
-                    val reader = java.io.BufferedReader(java.io.InputStreamReader(logcatProcess!!.inputStream))
-                    val writer = java.io.FileWriter(logFile, true)
-                    // Write header
-                    writer.write("=== YabaSanshiro Log ===\n")
-                    writer.write("Date: ${java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())}\n")
-                    writer.write("Game: ${intent.getStringExtra("org.uoyabause.android.FileNameEx") ?: intent.getStringExtra("org.uoyabause.android.FileNameUri") ?: "unknown"}\n")
-                    writer.write("=== Log Start ===\n")
-                    writer.flush()
-
-                    var line: String?
-                    while (reader.readLine().also { line = it } != null) {
-                        writer.write(line)
-                        writer.write("\n")
-                        writer.flush()
-                    }
-                    writer.close()
-                } catch (e: Exception) {
-                    Log.e(TAG, "Log file write error: ${e.localizedMessage}")
-                }
-            }.start()
-
-            Log.d(TAG, "Log file started: $logFile")
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to start file logging: ${e.localizedMessage}")
-        }
-    }
-
-    private fun stopFileLogging() {
-        try {
-            logcatProcess?.destroy()
-            logcatProcess = null
-        } catch (e: Exception) {
-            Log.e(TAG, "Error stopping file logging: ${e.localizedMessage}")
-        }
-    }
 
     private fun cropBlackBorders(srcPath: String): String? {
         try {

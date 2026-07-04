@@ -414,11 +414,6 @@
     <string name="frameLimit6x">6x</string>
     <string name="frameLimit6_5x">6.5x</string>
     <string name="frameLimit7x">7x</string>
-    <string name="frameLimit7_5x">7.5x</string>
-    <string name="frameLimit8x">8x</string>
-    <string name="frameLimit10x">10x</string>
-    <string name="frameLimit20x">20x</string>
-    <string name="frameLimitUnLimited">No Limit</string>
     <string name="pro_version_available">Pro version is available!\n\n * No limit install count\n * Save/Load game state between devices\n * No advertisement\n\n</string>
     <string name="select_install_location">Install Location</string>
     <string name="remaining_installation_count">Remaining installation count</string>
