@@ -342,7 +342,9 @@ const char *GetShaderPath()
     yclass = env->GetObjectClass(yabause);
     getBiosPath = env->GetMethodID(yclass, "getShaderPath", "()Ljava/lang/String;");
     message = (jstring)env->CallObjectMethod(yabause, getBiosPath);
-    if (env->GetStringLength(message) == 0)
+    if (message == NULL)
+        rtn = NULL;
+    else if (env->GetStringLength(message) == 0)
         rtn = NULL;
     else
         rtn = env->GetStringUTFChars(message, &dummy);
@@ -401,6 +403,8 @@ const char *GetGamePath()
     yclass = env->GetObjectClass(yabause);
     getGamePath = env->GetMethodID(yclass, "getGamePath", "()Ljava/lang/String;");
     message = (jstring)env->CallObjectMethod(yabause, getGamePath);
+    if (message == NULL)
+        return NULL;
     if (env->GetStringLength(message) == 0)
         return NULL;
     else
@@ -422,6 +426,8 @@ const char *GetMemoryPath()
     yclass = env->GetObjectClass(yabause);
     getMemoryPath = env->GetMethodID(yclass, "getMemoryPath", "()Ljava/lang/String;");
     message = (jstring)env->CallObjectMethod(yabause, getMemoryPath);
+    if (message == NULL)
+        return NULL;
     if (env->GetStringLength(message) == 0)
         return NULL;
     else
@@ -473,6 +479,8 @@ const char *GetCartridgePath()
     yclass = env->GetObjectClass(yabause);
     getCartridgePath = env->GetMethodID(yclass, "getCartridgePath", "()Ljava/lang/String;");
     message = (jstring)env->CallObjectMethod(yabause, getCartridgePath);
+    if (message == NULL)
+        return NULL;
     if (env->GetStringLength(message) == 0)
         return NULL;
     else

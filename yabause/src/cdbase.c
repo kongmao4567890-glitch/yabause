@@ -93,6 +93,8 @@ FILE* idiocy_fopen_fd(const char* fname, const char * mode) {
       // would fail, return NULL - after closing the
       // original fd received from Android, it's no longer valid.
       FILE *fp = fdopen(dup(fd), mode);
+      if (fp == NULL)
+        return NULL;
       // Why rewind(fp): if the native code closes and
       // opens again the file, the file read/write position
       // would not change, because with dup(fd) it's still
