@@ -159,9 +159,7 @@
         <item>@string/frameLimit7x</item>
         <item>@string/frameLimit7_5x</item>
         <item>@string/frameLimit8x</item>
-        <item>@string/frameLimit10x</item>
-        <item>@string/frameLimit20x</item>
-        <item>@string/frameLimitUnLimited</item>
+        <item>@string/frameLimitMaxSpeed</item>
     </string-array>
 
     <string-array name="entryValuesFrameLimit">
@@ -179,8 +177,6 @@
         <item>12</item>
         <item>13</item>
         <item>14</item>
-        <item>15</item>
-        <item>16</item>
         <item>1</item>
     </string-array>
 

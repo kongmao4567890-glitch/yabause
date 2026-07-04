@@ -386,9 +386,7 @@
     <string name="frameLimit7x">7倍</string>
     <string name="frameLimit7_5x">7.5倍</string>
     <string name="frameLimit8x">8倍</string>
-    <string name="frameLimit10x">10倍</string>
-    <string name="frameLimit20x">20倍</string>
-    <string name="frameLimitUnLimited">无限制</string>
+    <string name="frameLimitMaxSpeed">最大速</string>
     <string name="vulkan_video_interface">Vulkan</string>
 
     <!-- Settings - General/Sound -->

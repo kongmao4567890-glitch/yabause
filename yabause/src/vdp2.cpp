@@ -725,9 +725,11 @@ void VDP2SetFrameLimit(int mode) {
     lastticks = YabauseGetTicks();
     break;
   case 1:
-    // Unlimited: use very high multiplier to skip almost all frames
+    // Max Speed: 5x is the fastest safe speed (skip 4, render 1)
+    // Higher speeds cause black screen because Vdp1EraseWrite clears
+    // the buffer during skips but Vdp2DrawScreens is dummy (no composite)
     enableFrameLimit = 1;
-    frameLimitMultiplier = 200; // 20x = effectively unlimited
+    frameLimitMultiplier = 50; // 5x = 300Hz
     framecount = 0;
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
@@ -819,20 +821,6 @@ void VDP2SetFrameLimit(int mode) {
   case 14:
     enableFrameLimit = 1;
     frameLimitMultiplier = 80; // 8x = 480Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 15:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 100; // 10x = 600Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 16:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 200; // 20x = 1200Hz
     framecount = 0;
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
