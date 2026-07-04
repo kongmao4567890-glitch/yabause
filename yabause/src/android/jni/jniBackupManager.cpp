@@ -21,6 +21,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #include <string>
 #include <cstdint>
+#include <stdlib.h>
 #include "bios.h"
 #include <jni.h>
 #include "BackupManager.h"
@@ -28,20 +29,30 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 using std::string;
 
+// sanitize_utf8 is defined in yui.cpp; declared here so we can use it
+// to protect NewStringUTF calls from invalid Modified UTF-8 bytes.
+extern char *sanitize_utf8(const char *input);
+
 extern "C"{
 
 JNIEXPORT jstring JNICALL Java_org_uoyabause_android_YabauseRunnable_getDevicelist(JNIEnv* env) {
   BackupManager * i = BackupManager::getInstance();
   string jsonstr;
   i->getDevicelist(jsonstr);
-  return env->NewStringUTF(jsonstr.c_str());
+  char *sanitized = sanitize_utf8(jsonstr.c_str());
+  jstring result = sanitized ? env->NewStringUTF(sanitized) : env->NewStringUTF("");
+  if (sanitized) free(sanitized);
+  return result;
 }
 
 JNIEXPORT jstring JNICALL Java_org_uoyabause_android_YabauseRunnable_getFilelist(JNIEnv* env, jobject obj, jint deviceid ) {
   BackupManager * i = BackupManager::getInstance();
   string jsonstr;
   i->getFilelist(deviceid,jsonstr);
-  return env->NewStringUTF(jsonstr.c_str());
+  char *sanitized = sanitize_utf8(jsonstr.c_str());
+  jstring result = sanitized ? env->NewStringUTF(sanitized) : env->NewStringUTF("");
+  if (sanitized) free(sanitized);
+  return result;
 }
 
 JNIEXPORT jint JNICALL Java_org_uoyabause_android_YabauseRunnable_deletefile(JNIEnv* env, jobject obj, jint index ) {
@@ -54,7 +65,10 @@ JNIEXPORT jstring JNICALL Java_org_uoyabause_android_YabauseRunnable_getFile(JNI
   BackupManager * i = BackupManager::getInstance();
   string jsonstr;
   i->getFile(index,jsonstr);
-  return env->NewStringUTF(jsonstr.c_str());
+  char *sanitized = sanitize_utf8(jsonstr.c_str());
+  jstring result = sanitized ? env->NewStringUTF(sanitized) : env->NewStringUTF("");
+  if (sanitized) free(sanitized);
+  return result;
 }
 
 JNIEXPORT jint JNICALL Java_org_uoyabause_android_YabauseRunnable_putFile(JNIEnv* env, jobject obj, jstring jsonstr  ) {

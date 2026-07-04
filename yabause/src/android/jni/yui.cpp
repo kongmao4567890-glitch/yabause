@@ -94,21 +94,23 @@ static jobject yabause = NULL;
 // Replaces invalid UTF-8 bytes (e.g. GBK-encoded Chinese) with '?'.
 // This prevents SIGABRT from ART's NewStringUTF validation.
 // Returns a malloc'd string that the caller must free, or NULL on failure.
-static char *sanitize_utf8(const char *input) {
+char *sanitize_utf8(const char *input) {
     if (input == NULL) return NULL;
     size_t len = strlen(input);
     char *output = (char *)malloc(len + 1);
     if (output == NULL) return NULL;
-    
+
     size_t i = 0, o = 0;
     while (i < len) {
         unsigned char c = (unsigned char)input[i];
-        
+
         if (c < 0x80) {
             // ASCII - always valid
             output[o++] = input[i++];
-        } else if ((c & 0xE0) == 0xC0) {
-            // 2-byte sequence: needs 1 continuation byte
+        } else if (c >= 0xC2 && c <= 0xDF) {
+            // 2-byte sequence: needs 1 continuation byte.
+            // NOTE: 0xC0-0xC1 are overlong encodings (encode U+0000-U+007F)
+            // and must be rejected to prevent potential ART validation errors.
             if (i + 1 < len && ((unsigned char)input[i+1] & 0xC0) == 0x80) {
                 output[o++] = input[i++];
                 output[o++] = input[i++];
@@ -129,15 +131,17 @@ static char *sanitize_utf8(const char *input) {
                 i++;
             }
         } else if ((c & 0xF8) == 0xF0) {
-            // 4-byte sequence: needs 3 continuation bytes
+            // 4-byte UTF-8 sequence (U+10000 - U+10FFFF).
+            // CRITICAL: NewStringUTF uses Modified UTF-8, which does NOT support
+            // 4-byte sequences. ART will SIGABRT if it encounters one. We must
+            // replace the entire 4-byte sequence with '?' to prevent the crash.
+            // This affects emoji and CJK Extension B characters (e.g. 𠮷).
             if (i + 3 < len &&
                 ((unsigned char)input[i+1] & 0xC0) == 0x80 &&
                 ((unsigned char)input[i+2] & 0xC0) == 0x80 &&
                 ((unsigned char)input[i+3] & 0xC0) == 0x80) {
-                output[o++] = input[i++];
-                output[o++] = input[i++];
-                output[o++] = input[i++];
-                output[o++] = input[i++];
+                output[o++] = '?';
+                i += 4;
             } else {
                 output[o++] = '?';
                 i++;
@@ -572,21 +576,29 @@ extern "C" const char *GetFileDescriptorPath(const char *fileName)
     jstring message;
     jboolean dummy;
     JNIEnv *env;
+    int need_detach = 0;
     if (yvm->GetEnv((void **)&env, JNI_VERSION_1_6) != JNI_OK)
     {
         if (yvm->AttachCurrentThread(&env, NULL) != JNI_OK)
         {
-            __android_log_print(ANDROID_LOG_ERROR, "yabause", "Failed to AttachCurrentThread");
+            __android_log_print(ANDROID_LOG_ERROR, "yabause", "GetFileDescriptorPath: Failed to AttachCurrentThread");
             return NULL;
         }
+        need_detach = 1;
     }
+
+    __android_log_print(ANDROID_LOG_INFO, "yabause", "GetFileDescriptorPath: fileName='%s'", fileName ? fileName : "(null)");
 
     // Sanitize fileName to valid UTF-8 before NewStringUTF.
     // CUE files from Chinese Windows may contain GBK-encoded filenames;
     // NewStringUTF would SIGABRT on invalid Modified UTF-8 bytes.
     char *sanitized = sanitize_utf8(fileName);
-    if (sanitized == NULL) return NULL;
-    
+    if (sanitized == NULL) {
+        __android_log_print(ANDROID_LOG_ERROR, "yabause", "GetFileDescriptorPath: sanitize_utf8 returned NULL");
+        if (need_detach) yvm->DetachCurrentThread();
+        return NULL;
+    }
+
     jstring strj = env->NewStringUTF(sanitized);
     free(sanitized);
 
@@ -594,17 +606,36 @@ extern "C" const char *GetFileDescriptorPath(const char *fileName)
     getFileDescriptorPath = env->GetMethodID(yclass, "getFileDescriptorPath", "(Ljava/lang/String;)Ljava/lang/String;");
     message = (jstring)env->CallObjectMethod(yabause, getFileDescriptorPath, strj);
 
+    // CRITICAL: Check and clear any pending Java exception.
+    // If getFileDescriptorPath throws (e.g. SecurityException, FileNotFoundException),
+    // the exception stays pending. The next JNI call would SIGABRT with
+    // "JNI DETECTED ERROR IN APPLICATION: ... called with pending exception".
+    if (env->ExceptionCheck()) {
+        __android_log_print(ANDROID_LOG_ERROR, "yabause", "GetFileDescriptorPath: Java exception thrown, clearing it");
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+    }
+
     env->DeleteLocalRef(strj);
 
     if (message == NULL)
     {
+        __android_log_print(ANDROID_LOG_ERROR, "yabause", "GetFileDescriptorPath: returned NULL (file not found or error)");
+        if (need_detach) yvm->DetachCurrentThread();
         return NULL;
     }
 
-    if (env->GetStringLength(message) == 0)
+    if (env->GetStringLength(message) == 0) {
+        __android_log_print(ANDROID_LOG_ERROR, "yabause", "GetFileDescriptorPath: returned empty string");
+        if (need_detach) yvm->DetachCurrentThread();
         return NULL;
-    else
-        return env->GetStringUTFChars(message, &dummy);
+    }
+    else {
+        const char *result = env->GetStringUTFChars(message, &dummy);
+        __android_log_print(ANDROID_LOG_INFO, "yabause", "GetFileDescriptorPath: success, path='%s'", result ? result : "(null)");
+        if (need_detach) yvm->DetachCurrentThread();
+        return result;
+    }
 }
 
 void onBackupWrite(const char *fname, char *before, char *after, int size)
@@ -614,11 +645,16 @@ void onBackupWrite(const char *fname, char *before, char *after, int size)
     jclass yclass;
     jmethodID jniOnBackupWrite;
     JNIEnv *env;
+    int need_detach = 0;
 
-    if (yvm->AttachCurrentThread(&env, NULL) != JNI_OK)
+    if (yvm->GetEnv((void **)&env, JNI_VERSION_1_6) != JNI_OK)
     {
-        __android_log_print(ANDROID_LOG_ERROR, "yabause", "Failed to AttachCurrentThread");
-        return;
+        if (yvm->AttachCurrentThread(&env, NULL) != JNI_OK)
+        {
+            __android_log_print(ANDROID_LOG_ERROR, "yabause", "Failed to AttachCurrentThread");
+            return;
+        }
+        need_detach = 1;
     }
 
     /*
@@ -680,10 +716,17 @@ void onBackupWrite(const char *fname, char *before, char *after, int size)
     }
     env->CallVoidMethod(yabause, jniOnBackupWrite, jniFname, jniBefore, jniAfter);
 
-    if (yvm->DetachCurrentThread() != JNI_OK)
+    if (env->ExceptionCheck()) {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+    }
+
+    if (need_detach)
     {
-        __android_log_print(ANDROID_LOG_ERROR, "yabause", "Failed to DetachCurrentThread");
-        return;
+        if (yvm->DetachCurrentThread() != JNI_OK)
+        {
+            __android_log_print(ANDROID_LOG_ERROR, "yabause", "Failed to DetachCurrentThread");
+        }
     }
 
     return;
@@ -697,8 +740,22 @@ extern "C" void YuiErrorMsg(const char *string)
     jmethodID errorMsg;
     jstring message;
     JNIEnv *env;
+    int need_detach = 0;
 
-    yvm->AttachCurrentThread(&env, NULL);
+    // Use GetEnv first to check if thread is already attached.
+    // The render thread (created via pthread_create) may already be attached
+    // by GetFileDescriptorPath or other functions. If we blindly call
+    // AttachCurrentThread + DetachCurrentThread, we would detach the thread
+    // and break all subsequent JNI calls on this thread.
+    if (yvm->GetEnv((void **)&env, JNI_VERSION_1_6) != JNI_OK)
+    {
+        if (yvm->AttachCurrentThread(&env, NULL) != JNI_OK)
+        {
+            __android_log_print(ANDROID_LOG_ERROR, "yabause", "YuiErrorMsg: Failed to AttachCurrentThread");
+            return;
+        }
+        need_detach = 1;
+    }
 
     YUI_LOG("YuiErrorMsg2 %s", string);
 
@@ -714,7 +771,18 @@ extern "C" void YuiErrorMsg(const char *string)
         message = env->NewStringUTF("Unknown error");
     }
     env->CallVoidMethod(yabause, errorMsg, message);
-    yvm->DetachCurrentThread();
+
+    // Clear any pending Java exception from errorMsg (e.g. if the UI thread
+    // throws). Without this, subsequent JNI calls on this thread would crash.
+    if (env->ExceptionCheck()) {
+        env->ExceptionDescribe();
+        env->ExceptionClear();
+    }
+
+    // Only detach if WE attached. Never detach a thread that was already
+    // attached by another function — doing so would break all subsequent
+    // JNI calls on that thread (e.g. the render loop).
+    if (need_detach) yvm->DetachCurrentThread();
 }
 
 void *threadStartCallback(void *myself);
@@ -1349,6 +1417,9 @@ extern "C" jint Java_org_uoyabause_android_YabauseRunnable_init(JNIEnv *env, job
     shaderCachePath = string(GetShaderPath());
 
     YUI_LOG("YabauseRunnable_init s_vidcoretype = %d", s_vidcoretype);
+    YUI_LOG("YabauseRunnable_init s_cdpath = '%s'", s_cdpath ? s_cdpath : "(null)");
+    YUI_LOG("YabauseRunnable_init s_biospath = '%s'", s_biospath ? s_biospath : "(null)");
+    YUI_LOG("YabauseRunnable_init s_buppath = '%s'", s_buppath ? s_buppath : "(null)");
 
 
     pthread_attr_t tattr;
@@ -1691,12 +1762,14 @@ int YabauseInit()
     yinit.use_cpu_affinity = s_use_cpu_affinity;
     yinit.use_sh2_cache = s_use_sh2_cache;
 
+    YUI_LOG("YabauseInit: calling YabauseInit with cdpath='%s'", yinit.cdpath ? yinit.cdpath : "(null)");
     res = YabauseInit(&yinit);
     if (res != 0)
     {
         YUI_LOG("Fail to YabauseInit %d", res);
         return -1;
     }
+    YUI_LOG("YabauseInit: success");
 
     update_pad_mode();
 
@@ -2373,7 +2446,9 @@ void renderLoop()
                     return;
                 }
             }
+            YUI_LOG("renderLoop: calling YabauseInit");
             initResult = YabauseInit();
+            YUI_LOG("renderLoop: YabauseInit returned %d", initResult);
             break;
         case MSG_WINDOW_CHG:
             YUI_LOG("MSG_WINDOW_CHG");

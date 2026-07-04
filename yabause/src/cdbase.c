@@ -72,6 +72,12 @@ int checkCHD(const char *filename );
 
 #if defined(ANDROID)
 extern const char * GetFileDescriptorPath( const char * fileName );
+#include <android/log.h>
+#define CDBASE_LOG(...) __android_log_print(ANDROID_LOG_INFO, "yabause", __VA_ARGS__)
+#define CDBASE_ERR(...) __android_log_print(ANDROID_LOG_ERROR, "yabause", __VA_ARGS__)
+#else
+#define CDBASE_LOG(...)
+#define CDBASE_ERR(...)
 #endif
 
 #if defined(ANDROID)
@@ -735,18 +741,26 @@ static int LoadBinCue(const char *cuefilename, FILE *iso_file)
   fseek(iso_file, 0, SEEK_SET);
   matched = fscanf(iso_file, "FILE \"%[^\"]\" %*s\r\n", temp_buffer);
 
+  CDBASE_LOG("LoadBinCue: cuefilename='%s', BIN filename from CUE='%s', matched=%d", cuefilename, temp_buffer, matched);
+
 
   // check if File deskmode or not
 #if defined(ANDROID)
   if (strstr(cuefilename, "/proc/self/fd/") == cuefilename) {
+     CDBASE_LOG("LoadBinCue: using /proc/self/fd/ path, calling GetFileDescriptorPath");
      char * fdname = GetFileDescriptorPath(temp_buffer);
      if( fdname == NULL ){
+      CDBASE_ERR("LoadBinCue: GetFileDescriptorPath returned NULL for '%s'", temp_buffer);
       YabSetError(YAB_ERR_FILENOTFOUND, temp_buffer);
       free(temp_buffer);
       return -1;
      }
+     CDBASE_LOG("LoadBinCue: GetFileDescriptorPath returned '%s'", fdname);
 
      bin_file = fopen(fdname, "rb");
+     if (bin_file == NULL) {
+        CDBASE_ERR("LoadBinCue: fopen failed for fdname='%s'", fdname);
+     }
   }else{
 #endif
   // Now go and open up the image file, figure out its size, etc.
@@ -813,6 +827,8 @@ static int LoadBinCue(const char *cuefilename, FILE *iso_file)
   fseek(bin_file, 0, SEEK_END);
   file_size = ftell(bin_file);
   fseek(bin_file, 0, SEEK_SET);
+
+  CDBASE_LOG("LoadBinCue: BIN file opened, size=%d, track_num=%d", file_size, track_num);
 
   for (i = 0; i < track_num; i++)
   {
@@ -1651,17 +1667,22 @@ static int ISOCDInit(const char * iso) {
    memset(&disc, 0, sizeof(disc));
    iso_cd_status = 0;
 
+   CDBASE_LOG("ISOCDInit: iso='%s'", iso ? iso : "(null)");
+
    if (!iso)
       return -1;
 
    if (!(iso_file = fopen_utf8(iso, "rb")))
    {
+      CDBASE_ERR("ISOCDInit: fopen_utf8 failed for '%s'", iso);
       YabSetError(YAB_ERR_FILENOTFOUND, (char *)iso);
       return -1;
    }
+   CDBASE_LOG("ISOCDInit: file opened successfully");
 
    num_read = fread((void *)header, 1, 6, iso_file);
    ext = strrchr(iso, '.');
+   CDBASE_LOG("ISOCDInit: extension='%s', num_read=%zu", ext ? ext : "(none)", num_read);
    if (ext == NULL) {
      // read header
      if (checkCHD(iso) == 0) {
@@ -1719,6 +1740,7 @@ static int ISOCDInit(const char * iso) {
 
    if (ret != 0)
    {
+      CDBASE_ERR("ISOCDInit: loader failed with ret=%d, imgtype=%d", ret, imgtype);
       imgtype = IMG_NONE;
 
       if (iso_file)
@@ -1727,6 +1749,7 @@ static int ISOCDInit(const char * iso) {
       return -1;
    }
 
+   CDBASE_LOG("ISOCDInit: success, imgtype=%d", imgtype);
    BuildTOC();
    return 0;
 }

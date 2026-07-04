@@ -398,7 +398,33 @@ libretro_vfs_implementation_file *retro_vfs_file_open_impl(
       }
       stream->fd = fd;
 #else
-      FILE   *fp = (FILE*)fopen_utf8(path, mode_str);
+      FILE   *fp = NULL;
+#ifdef __ANDROID__
+      /* On Android, content:// URIs from the Storage Access Framework are
+       * converted to "/proc/self/fd/<fd>;<filename>" paths. Standard fopen()
+       * cannot open these because ';' is not a valid path separator. We must
+       * extract the fd number and use fdopen(dup(fd)) instead.
+       *
+       * Without this fix, chd_open() (used by libchdr) calls filestream_open()
+       * which calls fopen_utf8()->fopen() and fails on /proc/self/fd/ paths,
+       * causing CHD game loading to fail silently. */
+      if (path != NULL && strncmp(path, "/proc/self/fd/", 14) == 0)
+      {
+         int safd = atoi(path + 14);
+         if (safd > 0)
+         {
+            fp = fdopen(dup(safd), mode_str);
+            if (fp)
+               rewind(fp);
+         }
+      }
+      else
+      {
+         fp = (FILE*)fopen_utf8(path, mode_str);
+      }
+#else
+      fp = (FILE*)fopen_utf8(path, mode_str);
+#endif
 
       if (!fp)
          goto error;
