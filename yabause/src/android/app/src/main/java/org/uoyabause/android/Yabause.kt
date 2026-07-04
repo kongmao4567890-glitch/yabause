@@ -317,7 +317,7 @@ class Yabause : AppCompatActivity(),
     }
 
     var mParcelFileDescriptor: ParcelFileDescriptor? = null
-    var mExGameInputStream: java.io.FileInputStream? = null
+    var mExGameInputStream: ParcelFileDescriptor? = null
     var subFileDescripters = mutableListOf<ParcelFileDescriptor>()
 
     private val apiscope = CoroutineScope(Dispatchers.IO)
@@ -586,13 +586,14 @@ class Yabause : AppCompatActivity(),
             // 3. This makes the behavior identical to the FileNameUri (SAF) path,
             //    which works reliably.
             try {
-                val fis = java.io.FileInputStream(java.io.File(exgame))
-                val fd = fis.fd
-                val fname = java.io.File(exgame).name
+                val file = java.io.File(exgame)
+                val pfd = ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+                val fd = pfd.fd
+                val fname = file.name
                 gamePath = "/proc/self/fd/$fd;$fname"
                 fileDesc = fd
-                // Store the FileInputStream to prevent GC and keep fd valid
-                mExGameInputStream = fis
+                // Store the ParcelFileDescriptor to keep fd valid
+                mExGameInputStream = pfd
                 Log.d(TAG, "FileNameEx converted to fd path: $gamePath")
             } catch (e: Exception) {
                 Log.e(TAG, "Failed to open FileNameEx as fd: ${e.message}", e)
