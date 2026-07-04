@@ -968,6 +968,7 @@ extern "C" JNIEXPORT int JNICALL Java_org_uoyabause_android_YabauseRunnable_togg
 extern "C" JNIEXPORT int JNICALL Java_org_uoyabause_android_YabauseRunnable_setFrameLimitMode(JNIEnv *env, jobject obj, int mode)
 {
     frameLimitMode = mode;
+    YUI_LOG("setFrameLimitMode: mode=%d", mode);
     VDP2SetFrameLimit(mode);
     return 0;
 }

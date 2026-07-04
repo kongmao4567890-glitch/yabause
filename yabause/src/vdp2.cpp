@@ -51,6 +51,15 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #include "smpc.h"
 #include "vdp1.h"
 #include "yabause.h"
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#define VDP2_LOG(...) __android_log_print(ANDROID_LOG_DEBUG, "Vdp2", __VA_ARGS__)
+#define VDP2_LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "Vdp2", __VA_ARGS__)
+#else
+#define VDP2_LOG(...) printf(__VA_ARGS__)
+#define VDP2_LOGE(...) fprintf(stderr, __VA_ARGS__)
+#endif
 #include "movie.h"
 #include "osdcore.h"
 #include "threads.h"
@@ -855,13 +864,23 @@ void frameSkipAndLimit() {
 
     if ( autoframeskipenab && (onesecondticks + diffticks) > targetTime )
     {
-      LOG("Frame skip target:%lu current:%lu (mult=%d skip=%d)", targetTime, (onesecondticks + diffticks), frameLimitMultiplier, framesToSkip);
+      VDP2_LOG("Frame skip: target=%llu current=%llu mult=%d skip=%d fps=%d",
+               (unsigned long long)targetTime, (unsigned long long)(onesecondticks + diffticks),
+               frameLimitMultiplier, framesToSkip, fps);
       // Skip the next frame
       skipnextframe = 1;
 
       // Scale frames to skip based on speed multiplier
       framestoskip = framesToSkip;
 
+    } else if ((onesecondticks + diffticks) < targetTime) {
+      // Not skipping, running within target
+      static int logCounter = 0;
+      if (logCounter++ % 60 == 0) {
+        VDP2_LOG("Frame OK: target=%llu current=%llu mult=%d framecount=%d",
+                 (unsigned long long)targetTime, (unsigned long long)(onesecondticks + diffticks),
+                 frameLimitMultiplier, framecount);
+      }
     }
 
     // Scale the wait threshold proportionally to frame time
@@ -1323,15 +1342,21 @@ void vdp2VBlankOUT(void) {
 #endif 
 
   if (pre_swap_frame_buffer == 0 && skipnextframe && Vdp1External.swap_frame_buffer ){
-    skipnextframe = 0;
-    previous_skipped = 0;
-    framestoskip = 1;
+    // At high speed (4x+), allow skipping even during VDP1 swap
+    if (frameLimitMultiplier < 40) {
+      skipnextframe = 0;
+      previous_skipped = 0;
+      framestoskip = 1;
+    }
   }
 
+  // At high speed (4x+), allow consecutive frame skips
   if (previous_skipped != 0 && skipnextframe != 0) {
-    skipnextframe = 0;
-    previous_skipped = 0;
-    framestoskip = 1;
+    if (frameLimitMultiplier < 40) {
+      skipnextframe = 0;
+      previous_skipped = 0;
+      framestoskip = 1;
+    }
   }
 
   pre_swap_frame_buffer = Vdp1External.swap_frame_buffer;
@@ -1397,6 +1422,8 @@ void vdp2VBlankOUT(void) {
     }
 
     FRAMELOG("Vdp1FrameChange swap=%d,plot=%d*****", Vdp1External.swap_frame_buffer, Vdp1External.frame_change_plot);
+    VDP2_LOG("[VDP1] FrameChange: frame=%d, status=%d, plot=%d, skip=%d, EDSR=%02X",
+             vdp1_frame, Vdp1External.status, Vdp1External.frame_change_plot, skipnextframe, Vdp1Regs->EDSR);
     VIDCore->Vdp1FrameChange();
     Vdp1External.current_frame = !Vdp1External.current_frame;
     Vdp1External.swap_frame_buffer = 0;
@@ -1409,11 +1436,11 @@ void vdp2VBlankOUT(void) {
     // if Plot Trigger mode == 0x02 draw start
     if (Vdp1External.frame_change_plot == 1 || Vdp1External.status == VDP1_STATUS_RUNNING ){
       FRAMELOG("[VDP1] frame_change_plot == 1 start drawing immidiatly", Vdp1Regs->EDSR);
-      LOG("[VDP1] Start Drawing %d", yabsys.LineCount);
+      VDP2_LOG("[VDP1] Start Drawing: Line=%d, addr=%d, COPR=%d", yabsys.LineCount, Vdp1Regs->addr, Vdp1Regs->COPR);
       Vdp1Regs->addr = 0;
       Vdp1Regs->COPR = 0;
       Vdp1Draw();
-      LOG("[VDP1] End Drawing %d", yabsys.LineCount);
+      VDP2_LOG("[VDP1] End Drawing: addr=%d, COPR=%d", Vdp1Regs->addr, Vdp1Regs->COPR);
       isrender = 1;
     }
   }
