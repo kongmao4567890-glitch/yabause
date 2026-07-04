@@ -73,7 +73,6 @@ internal class GameFilter : FilenameFilter {
         val lower = filename.lowercase(Locale.ROOT)
         if (lower.endsWith(".img")) return true
         if (lower.endsWith(".bin")) return true
-        if (lower.endsWith(".cue")) return true
         if (lower.endsWith(".ccd")) return true
         if (lower.endsWith(".iso")) return true
         if (lower.endsWith(".mds")) return true
@@ -424,7 +423,7 @@ class YabauseStorage private constructor() {
         }
     }
     fun generateGameListFromDirectory(dir: String?) {
-        val supportedExtensions = listOf("img", "bin", "ccd", "mds", "iso", "chd", "mdf", "cue")
+        val supportedExtensions = listOf("img", "bin", "ccd", "mds", "iso", "chd", "mdf")
 
         if (dir?.contains("content://") == true) {
             val uri = Uri.parse(dir)

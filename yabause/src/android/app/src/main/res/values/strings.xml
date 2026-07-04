@@ -369,6 +369,18 @@
     </string>
 
 
+    <string name="welcome_folder_picker">
+        <![CDATA[
+        # Welcome! \n\n
+        Select a folder containing your SEGA Saturn game files to get started.\n\n
+        Supported formats: .iso, .bin, .chd, .img, .ccd, .mds, .mdf\n
+        ]]>
+    </string>
+    <string name="select_game_folder">Select Game Folder</string>
+    <string name="select_game_folder_message">Please select a folder that contains your SEGA Saturn game files (.iso, .bin, .chd, .img, .ccd, .mds, .mdf). Subfolders will be searched automatically.</string>
+    <string name="select_folder">Select Folder</string>
+    <string name="failed_to_access_folder">Failed to access the selected folder. Please try again.</string>
+
     <string name="delete_confirm_title">DELETE CONFIRM</string>
     <string name="not_available">NOT AVAILABLE!</string>
     <string name="only_pro_version">This function is only available for pro version</string>
@@ -393,7 +405,7 @@
     </string>
     <string name="attachment_summary_off">Only download attachments when manually requested</string>
     <string name="do_you_want_to_install">Do you want to install?</string>
-    <string name="only_chd_is_supported_for_load_game">Supported formats: chd, bin, iso, img, cue, ccd, mds, mdf, zip</string>
+    <string name="only_chd_is_supported_for_load_game">Supported formats: chd, bin, iso, img, ccd, mds, mdf, zip</string>
     <string name="install_game_message">If you install, you can play from this game list directly. It takes up  </string>
     <string name="install_game_message_after">MB of storage space.</string>
 
