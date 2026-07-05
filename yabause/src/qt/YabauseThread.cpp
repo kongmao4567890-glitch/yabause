@@ -72,7 +72,7 @@ extern "C" {
     if (vs->value("General/EnableEmulatedBios", false).toBool())
       conf->biospath = strdup("");
     else
-      conf->biospath = strdup(vs->value("General/Bios", conf->biospath).toString().toLatin1().constData());
+      conf->biospath = strdup(vs->value("General/Bios", conf->biospath).toString().toUtf8().constData());
 
   }
 
@@ -80,14 +80,14 @@ extern "C" {
     VolatileSettings* vs = QtYabause::volatileSettings();
     vs->setValue("Memory/Path", buf);
     yabauseinit_struct* conf = YabauseThread::getInstance()->yabauseConf();
-    conf->buppath = strdup(vs->value("Memory/Path", conf->buppath).toString().toLatin1().constData());
+    conf->buppath = strdup(vs->value("Memory/Path", conf->buppath).toString().toUtf8().constData());
   }
 
   void YabauseThread_resetPlaymode() {
     VolatileSettings* vs = QtYabause::volatileSettings();
     vs->setValue("General/RecordDir", "");
     yabauseinit_struct* conf = YabauseThread::getInstance()->yabauseConf();
-    conf->buppath = strdup(vs->value("General/RecordDir", conf->buppath).toString().toLatin1().constData());
+    conf->buppath = strdup(vs->value("General/RecordDir", conf->buppath).toString().toUtf8().constData());
   }
 
   void YabauseThread_coldBoot() {
@@ -298,7 +298,7 @@ bool YabauseThread::pauseEmulation( bool pause, bool reset, std::function<void()
 				vs->value("autostart/binary/address").toUInt());
 		}
 		else if (vs->value("autostart/load").toBool()) {
-			YabLoadStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), vs->value("autostart/load/slot").toInt() );
+			YabLoadStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toUtf8().constData(), vs->value("autostart/load/slot").toInt() );
 		}
 		vs->setValue("autostart", false);
 	}
@@ -642,7 +642,7 @@ void YabauseThread::reloadSettings()
   mYabauseConf.scsp_sync_count_per_frame = vs->value("Sound/ScspSync", 1).toInt();
   mYabauseConf.scsp_main_mode = vs->value("Sound/ScspMainMode", 1).toInt();
 
-  mYabauseConf.playRecordPath = strdup(vs->value("General/RecordDir", mYabauseConf.playRecordPath).toString().toLatin1().constData());
+  mYabauseConf.playRecordPath = strdup(vs->value("General/RecordDir", mYabauseConf.playRecordPath).toString().toUtf8().constData());
 
 
   mYabauseConf.use_sh2_cache = vs->value("General/UseSh2Cache", true).toBool()?1:0 ;
@@ -708,7 +708,7 @@ void YabauseThread::resetYabauseConf()
   mYabauseConf.scsp_sync_count_per_frame = 1;
   mYabauseConf.scsp_main_mode = 1;
   mYabauseConf.use_new_scsp = 1;
-  mYabauseConf.buppath = strdup(getDataDirPath().append("/bkram.bin").toLatin1().constData());
+  mYabauseConf.buppath = strdup(getDataDirPath().append("/bkram.bin").toUtf8().constData());
   mYabauseConf.playRecordPath = NULL;
 }
 

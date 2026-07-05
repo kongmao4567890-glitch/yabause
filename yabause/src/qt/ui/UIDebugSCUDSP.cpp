@@ -211,7 +211,7 @@ void UIDebugSCUDSP::reserved1()
 	if (!ScuRegs)
 		return;
    if ( !s.isNull() )
-      ScuDspSaveProgram(s.toLatin1());
+      ScuDspSaveProgram(s.toUtf8());
 }
 
 void UIDebugSCUDSP::reserved2()
@@ -220,7 +220,7 @@ void UIDebugSCUDSP::reserved2()
 	if (!ScuRegs)
 		return;
    if ( !s.isNull() )
-      ScuDspSaveMD(s.toLatin1(), 0);
+      ScuDspSaveMD(s.toUtf8(), 0);
 }
 
 void UIDebugSCUDSP::reserved3()
@@ -229,7 +229,7 @@ void UIDebugSCUDSP::reserved3()
 	if (!ScuRegs)
 		return;
    if ( !s.isNull() )
-      ScuDspSaveMD(s.toLatin1(), 1);
+      ScuDspSaveMD(s.toUtf8(), 1);
 }
 
 void UIDebugSCUDSP::reserved4()
@@ -238,7 +238,7 @@ void UIDebugSCUDSP::reserved4()
 	if (!ScuRegs)
 		return;
    if ( !s.isNull() )
-      ScuDspSaveMD(s.toLatin1(), 2);
+      ScuDspSaveMD(s.toUtf8(), 2);
 }
 
 void UIDebugSCUDSP::reserved5()
@@ -247,6 +247,6 @@ void UIDebugSCUDSP::reserved5()
 	if (!ScuRegs)
 		return;
    if ( !s.isNull() )
-      ScuDspSaveMD(s.toLatin1(), 3);
+      ScuDspSaveMD(s.toUtf8(), 3);
 }
 

@@ -424,7 +424,7 @@
     <string name="free_space">可用空间</string>
     <string name="no_enough_free_space">可用空间不足。</string>
     <string name="select_install_location">安装位置</string>
-    <string name="only_chd_is_supported_for_load_game">支持的格式：chd、bin、iso、img、cue、ccd、mds、mdf、zip</string>
+    <string name="only_chd_is_supported_for_load_game">支持的格式：chd、bin、iso、img、ccd、mds、mdf、zip</string>
     <string name="install_game_message">安装后，您可以直接从此游戏列表中玩。它将占用 </string>
     <string name="install_game_message_after">MB 的存储空间。</string>
     <string name="updating">更新中...</string>
@@ -475,6 +475,11 @@
 
     <!-- Misc/UI -->
     <string name="welcome"><![CDATA[# 欢迎！\n\n要玩 SEGA Saturn 游戏，请按照以下说明操作。\n\n1. 使用 DiscImageChef 等工具从游戏 CD-ROM 生成镜像文件。有用的工具列表在[这里](http://wiki.redump.org/index.php?title=Useful_Links)。\n2. 将镜像文件复制到智能手机内部存储中的 **\"%1$s\"** 目录。\n3. 打开侧边菜单，点击\"刷新游戏列表\"。然后会显示游戏列表。\n4. 点击您想玩的游戏标题。\n5. 享受！\n\n更多详情请查看此 [YouTube 视频](https://www.youtube.com/watch?v=Ch6_KhhAg10)。\n]]></string>
+    <string name="welcome_folder_picker"><![CDATA[# 欢迎！\n\n请选择一个包含 SEGA Saturn 游戏文件的文件夹。\n\n支持的格式：.iso, .bin, .chd, .img, .ccd, .mds, .mdf\n]]></string>
+    <string name="select_game_folder">选择游戏文件夹</string>
+    <string name="select_game_folder_message">请选择一个包含 SEGA Saturn 游戏文件的文件夹（.iso, .bin, .chd, .img, .ccd, .mds, .mdf）。子文件夹会被自动搜索。</string>
+    <string name="select_folder">选择文件夹</string>
+    <string name="failed_to_access_folder">无法访问所选文件夹，请重试。</string>
     <string name="privacy_policy">隐私政策</string>
     <string name="information">信息</string>
     <string name="not_available">不可用！</string>

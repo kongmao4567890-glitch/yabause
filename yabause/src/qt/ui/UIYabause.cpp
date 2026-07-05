@@ -116,15 +116,15 @@ UIYabause::UIYabause( QWidget* parent )
 	// create glcontext
 	
 
-	// ï¿½Xï¿½^ï¿½bï¿½Nï¿½Eï¿½Bï¿½Wï¿½Fï¿½bï¿½gï¿½ï¿½ï¿½ì¬
+	// é”Ÿçµé”Ÿçµ•é”Ÿçµ™é”Ÿçµ…é”Ÿç´¼é”Ÿç´¹é”Ÿçµé”Ÿç´½é”Ÿçµ™é”Ÿçµé”Ÿæ–¤æ‹·é”Ÿå±Šæƒ‰
 	mStackedWidget = new QStackedWidget(this);
 	setCentralWidget(mStackedWidget);
 
-	// FileSearchWidgetï¿½ï¿½ï¿½ì¬
+	// FileSearchWidgeté”Ÿæ–¤æ‹·é”Ÿå±Šæƒ‰
 	mFileSearch = new FileSearchWidget(this);
 	mStackedWidget->addWidget(mFileSearch);
 
-	// YabauseGLï¿½ï¿½ï¿½ì¬
+	// YabauseGLé”Ÿæ–¤æ‹·é”Ÿå±Šæƒ‰
 	mYabauseGL = new YabauseGL(this);
 	mStackedWidget->addWidget(mYabauseGL);
 
@@ -228,7 +228,7 @@ UIYabause::UIYabause( QWidget* parent )
 	QString storageBucket = settings.value("CloudService/storage_bucket").toString();
 	QString projectId = settings.value("CloudService/project_id").toString();
 
-	// Firebase ï¿½Ìï¿½ï¿½ï¿½ï¿½ï¿½
+	// Firebase é”Ÿæ•™å¿¥æ‹·é”Ÿæ–¤æ‹·é”Ÿæ–¤æ‹·
 	std::thread t([=] {
 		firebase::AppOptions options;
 		options.set_app_id(appId.toStdString().c_str());
@@ -327,29 +327,29 @@ std::string versionToScalar(const std::string& version) {
 	std::string segment;
 	std::vector<int> parts;
 
-	// ƒo[ƒWƒ‡ƒ“•¶š—ñ‚ğ "." ‚Å•ªŠ„
+	// åƒ¶ä¹•åƒ•å„‘å„æš¥å¸¤æ¥å‚ª "." å±æš˜å¦±
 	while (std::getline(ss, segment, '.')) {
 		parts.push_back(std::stoi(segment));
 	}
 
-	// Še•”•ª‚ğƒXƒJƒ‰[’l‚É•ÏŠ·
+	// å¥ºæ™¹æš˜å‚ªåƒ—åƒ‡å„”ä¹•æŠ£åµæ›„å§º
 	std::ostringstream result;
 	if (parts.size() > 0) {
-		result << std::setw(3) << std::setfill('0') << std::setw(3) << parts[0]; // Majorƒo[ƒWƒ‡ƒ“i1Œ…j
+		result << std::setw(3) << std::setfill('0') << std::setw(3) << parts[0]; // Majoråƒ¶ä¹•åƒ•å„‘å„ä¹®1å¯˜ä¹¯
 	}
 	if (parts.size() > 1) {
-		result << std::setw(3) << std::setfill('0') << parts[1]; // Minorƒo[ƒWƒ‡ƒ“i3Œ…j
+		result << std::setw(3) << std::setfill('0') << parts[1]; // Minoråƒ¶ä¹•åƒ•å„‘å„ä¹®3å¯˜ä¹¯
 	}
 	if (parts.size() > 2) {
-		result << std::setw(3) << std::setfill('0') << parts[2]; // Patchƒo[ƒWƒ‡ƒ“i3Œ…j
+		result << std::setw(3) << std::setfill('0') << parts[2]; // Patchåƒ¶ä¹•åƒ•å„‘å„ä¹®3å¯˜ä¹¯
 	}
 
-	result << "000"; // è“®
+	result << "000"; // åº¤æ‘¦
 
 	return result.str();
 }
 
-// char* ‚ğ wchar_t* ‚É•ÏŠ·‚·‚éŠÖ”
+// char* å‚ª wchar_t* åµæ›„å§ºå¡å‚å¨­æ‚¢
 std::wstring charToWString(const char* str) {
 	size_t len = std::strlen(str);
 	std::wstring wstr(len, L'\0');
@@ -1327,7 +1327,7 @@ void UIYabause::on_mFileSaveState_triggered( QAction* a )
 	if ( a == aFileSaveStateAs || a == actionTo_Cloud )
 		return;
 	YabauseLocker locker( mYabauseThread );
-	if ( YabSaveStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), a->data().toInt() ) != 0 )
+	if ( YabSaveStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toUtf8().constData(), a->data().toInt() ) != 0 )
 		CommonDialogs::information( QtYabause::translate( "Couldn't save state file" ) );
 	else
 		refreshStatesActions();
@@ -1338,7 +1338,7 @@ void UIYabause::on_mFileLoadState_triggered( QAction* a )
 	if ( a == aFileLoadStateAs || a == actionFrom_Cloud )
 		return;
 	YabauseLocker locker( mYabauseThread );
-	if ( YabLoadStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toLatin1().constData(), a->data().toInt() ) != 0 )
+	if ( YabLoadStateSlot( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString().toUtf8().constData(), a->data().toInt() ) != 0 )
 		CommonDialogs::information( QtYabause::translate( "Couldn't load state file" ) );
 }
 
@@ -1348,7 +1348,7 @@ void UIYabause::on_aFileSaveStateAs_triggered()
 	const QString fn = CommonDialogs::getSaveFileName( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString(), QtYabause::translate( "Choose a file to save your state" ), QtYabause::translate( "Yabause Save State (*.yss)" ) );
 	if ( fn.isNull() )
 		return;
-	if ( YabSaveState( fn.toLatin1().constData() ) != 0 )
+	if ( YabSaveState( fn.toUtf8().constData() ) != 0 )
 		CommonDialogs::information( QtYabause::translate( "Couldn't save state file" ) );
 }
 
@@ -1358,7 +1358,7 @@ void UIYabause::on_aFileLoadStateAs_triggered()
 	const QString fn = CommonDialogs::getOpenFileName( QtYabause::volatileSettings()->value( "General/SaveStates", getDataDirPath() ).toString(), QtYabause::translate( "Select a file to load your state" ), QtYabause::translate( "Yabause Save State (*.yss)" ) );
 	if ( fn.isNull() )
 		return;
-	if ( YabLoadState( fn.toLatin1().constData() ) != 0 )
+	if ( YabLoadState( fn.toUtf8().constData() ) != 0 )
 		CommonDialogs::information( QtYabause::translate( "Couldn't load state file" ) );
 	else
 		aEmulationRun->trigger();

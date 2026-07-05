@@ -334,6 +334,64 @@ class GameSelectFragmentPhone : Fragment(),
         }
     }
 
+    // Folder picker for game list loading (ACTION_OPEN_DOCUMENT_TREE)
+    private var gameFolderPickerLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val uri = result.data?.data
+            if (uri != null) {
+                try {
+                    // Take persistable read permission
+                    val takeFlags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    requireContext().contentResolver.takePersistableUriPermission(uri, takeFlags)
+                    Log.d(TAG, "Game folder selected: $uri")
+
+                    // Save to SharedPreferences
+                    val sharedPref = PreferenceManager.getDefaultSharedPreferences(requireContext())
+                    val existing = sharedPref.getString("pref_game_directory", "err")
+                    val newList = if (existing == "err" || existing.isNullOrEmpty()) {
+                        uri.toString()
+                    } else {
+                        val paths = existing.split(";").toMutableList()
+                        if (!paths.contains(uri.toString())) {
+                            paths.add(uri.toString())
+                        }
+                        paths.joinToString(";")
+                    }
+                    sharedPref.edit().putString("pref_game_directory", newList).apply()
+
+                    // Trigger game list refresh
+                    updateGameList()
+                } catch (e: Exception) {
+                    Log.e(TAG, "Failed to setup game folder: ${e.message}", e)
+                    Toast.makeText(requireContext(),
+                        getString(R.string.failed_to_access_folder),
+                        Toast.LENGTH_LONG).show()
+                }
+            }
+        } else {
+            Log.d(TAG, "Game folder picker cancelled")
+        }
+    }
+
+    /**
+     * Show a dialog asking the user to select a game folder,
+     * then launch the SAF folder picker.
+     */
+    fun showGameFolderPicker() {
+        AlertDialog.Builder(requireContext())
+            .setTitle(getString(R.string.select_game_folder))
+            .setMessage(getString(R.string.select_game_folder_message))
+            .setPositiveButton(R.string.select_folder) { _, _ ->
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
+                }
+                gameFolderPickerLauncher.launch(intent)
+            }
+            .setNegativeButton(R.string.cancel, null)
+            .setCancelable(true)
+            .show()
+    }
+
     // Callback for pending deletion operations
     private var pendingDeletionCallback: ((Boolean) -> Unit)? = null
 
@@ -1349,21 +1407,9 @@ class GameSelectFragmentPhone : Fragment(),
                 loadRows()
 
                 dismissDialog()
-                if (isFirstUpdate) {
-                    isFirstUpdate = false
-                    if (this@GameSelectFragmentPhone.requireActivity().intent!!.getBooleanExtra(
-                            "showPin",
-                            false
-                        )
-                    ) {
-                        ShowPinInFragment.newInstance().show(
-                            childFragmentManager,
-                            "sample"
-                        )
-                    } else {
-                        presenter.checkSignIn(signInActivityLauncher)
-                    }
-                }
+                // Removed showPin and checkSignIn dialogs on first update.
+                // Only the folder picker dialog is shown when game list is empty.
+                isFirstUpdate = false
 
                 observer = null
                 presenter.syncBackup()
@@ -1426,40 +1472,23 @@ class GameSelectFragmentPhone : Fragment(),
             val totalGameCount = dataCount + cloudOnlyGames.size
 
             if (totalGameCount == 0) {
-                // ゲームがない場合はウェルカムメッセージを表示
+                // Show folder picker dialog for game list loading
                 launch(Dispatchers.Main) {
+                    // Also show welcome message behind the dialog
                     val viewMessageParent =
                         rootView.findViewById<ScrollView?>(org.devmiyax.yabasanshiro.R.id.empty_message_parent)
                     val viewMessage =
                         rootView.findViewById<TextView?>(org.devmiyax.yabasanshiro.R.id.empty_message)
                     viewMessageParent!!.visibility = VISIBLE
-
                     val markwon = Markwon.create(this@GameSelectFragmentPhone.activity as Context)
+                    val welcomeMessage = resources.getString(
+                        org.devmiyax.yabasanshiro.R.string.welcome_folder_picker,
+                        YabauseStorage.storage.gamePath,
+                    )
+                    markwon.setMarkdown(viewMessage, welcomeMessage)
 
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-                        val welcomeMessage = resources.getString(
-                            org.devmiyax.yabasanshiro.R.string.welcome_11,
-                            YabauseStorage.storage.gamePath,
-                            "",
-                        )
-                        markwon.setMarkdown(viewMessage, welcomeMessage)
-
-                    }
-                    else if (Build.VERSION.SDK_INT >= VERSION_CODES.Q) {
-                        val packageName = requireActivity().packageName
-                        val welcomeMessage = resources.getString(
-                            org.devmiyax.yabasanshiro.R.string.welcome_11,
-                            "Android/data/$packageName/files/yabause/games",
-                            "Android/data/$packageName/files",
-                        )
-                        markwon.setMarkdown(viewMessage, welcomeMessage)
-                    } else {
-                        val welcomeMessage = resources.getString(
-                            org.devmiyax.yabasanshiro.R.string.welcome,
-                            YabauseStorage.storage.gamePath
-                        )
-                        markwon.setMarkdown(viewMessage, welcomeMessage)
-                    }
+                    // Show folder picker dialog
+                    showGameFolderPicker()
                 }
                 return@launch
             }

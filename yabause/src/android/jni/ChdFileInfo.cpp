@@ -20,6 +20,10 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #include "ChdFileInfo.h"
 #include <malloc.h>
+#include <string.h>
+#include <android/log.h>
+
+#define CHDINFO_LOG(...) __android_log_print(ANDROID_LOG_INFO, "yabause", __VA_ARGS__)
 
 jstring NewStringMS932(JNIEnv *env, const char *sjis)
 {
@@ -77,8 +81,21 @@ ChdFileInfo::~ChdFileInfo(){
 
 int ChdFileInfo::getHeader( std::string filepath, char * buf, int len  ){
 
-  chd_error error = chd_open(filepath.c_str(), CHD_OPEN_READ, NULL, &chd);
+  /* On Android, the path may be "/proc/self/fd/<fd>;<filename>".
+   * The external libchdr uses fopen() which cannot handle the ";<filename>" suffix.
+   * Strip it so fopen("/proc/self/fd/<fd>", "rb") is called instead. */
+  std::string clean_path = filepath;
+  if (clean_path.compare(0, 14, "/proc/self/fd/") == 0) {
+    size_t semi = clean_path.find(';');
+    if (semi != std::string::npos) {
+      clean_path = clean_path.substr(0, semi);
+    }
+  }
+  CHDINFO_LOG("ChdFileInfo::getHeader: filepath='%s', clean_path='%s'", filepath.c_str(), clean_path.c_str());
+
+  chd_error error = chd_open(clean_path.c_str(), CHD_OPEN_READ, NULL, &chd);
   if (error != CHDERR_NONE) {
+    CHDINFO_LOG("ChdFileInfo::getHeader: chd_open failed with error=%d", error);
     return -1;
   }
   const chd_header * header = chd_get_header(chd);

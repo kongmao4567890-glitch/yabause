@@ -107,10 +107,10 @@ void UIDebugSCSP::initAudio()
 void UIDebugSCSP::notified()
 {
 	if (audioOutput) {
-		qint64 bytesFree = audioOutput->bytesFree(); // ƒoƒbƒtƒ@‚Ì‹ó‚«—e—Ê‚ğæ“¾
-		qint64 elapsedUSecs = audioOutput->elapsedUSecs(); // Ä¶ŠJn‚©‚ç‚ÌŒo‰ßŠÔiƒ}ƒCƒNƒ•bj
-		qint64 processedUSecs = audioOutput->processedUSecs(); // ˆ—Ï‚İ‚Ìƒ}ƒCƒNƒ•b
-		int periodSize = audioOutput->bufferSize(); // ƒoƒbƒtƒ@ƒTƒCƒY‚Æ‚µ‚Ä periodSize ‚ğæ“¾
+		qint64 bytesFree = audioOutput->bytesFree(); // ãƒãƒƒãƒ•ã‚¡ã®ç©ºãå®¹é‡ã‚’å–å¾—
+		qint64 elapsedUSecs = audioOutput->elapsedUSecs(); // å†ç”Ÿé–‹å§‹ã‹ã‚‰ã®çµŒéæ™‚é–“ï¼ˆãƒã‚¤ã‚¯ãƒ­ç§’ï¼‰
+		qint64 processedUSecs = audioOutput->processedUSecs(); // å‡¦ç†æ¸ˆã¿ã®ãƒã‚¤ã‚¯ãƒ­ç§’
+		int periodSize = audioOutput->bufferSize(); // ãƒãƒƒãƒ•ã‚¡ã‚µã‚¤ã‚ºã¨ã—ã¦ periodSize ã‚’å–å¾—
 
 		qWarning() << "bytesFree =" << bytesFree
 			<< ", elapsedUSecs =" << elapsedUSecs
@@ -207,7 +207,7 @@ void UIDebugSCSP::on_pbSaveAsWav_clicked ()
 	
 	// write image if ok
 	if ( !s.isEmpty() )
-		if (ScspSlotDebugAudioSaveWav(sbSlotNumber->value(), s.toLatin1()) != 0)
+		if (ScspSlotDebugAudioSaveWav(sbSlotNumber->value(), s.toUtf8()) != 0)
 			CommonDialogs::information( QtYabause::translate( "An error occured while writing file." ) );                  
 }
 
@@ -215,6 +215,6 @@ void UIDebugSCSP::on_pbSaveSlotRegisters_clicked ()
 {
 	const QString s = CommonDialogs::getSaveFileName( QString(), QtYabause::translate( "Choose a location for your binary file" ), QtYabause::translate( "Binary Files (*.bin)" ) );
 	if ( !s.isEmpty() )
-      if (ScspSlotDebugSaveRegisters(sbSlotNumber->value(), s.toLatin1()) != 0)
+      if (ScspSlotDebugSaveRegisters(sbSlotNumber->value(), s.toUtf8()) != 0)
 			CommonDialogs::information( QtYabause::translate( "An error occured while writing file." ) );
 }

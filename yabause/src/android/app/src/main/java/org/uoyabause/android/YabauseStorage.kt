@@ -73,7 +73,6 @@ internal class GameFilter : FilenameFilter {
         val lower = filename.lowercase(Locale.ROOT)
         if (lower.endsWith(".img")) return true
         if (lower.endsWith(".bin")) return true
-        if (lower.endsWith(".cue")) return true
         if (lower.endsWith(".ccd")) return true
         if (lower.endsWith(".iso")) return true
         if (lower.endsWith(".mds")) return true
