@@ -1240,7 +1240,7 @@ class GameSelectFragmentPhone : Fragment(),
             rootView.findViewById<View>(org.devmiyax.yabasanshiro.R.id.toolbar) as Toolbar
         toolbar.setLogo(org.devmiyax.yabasanshiro.R.mipmap.ic_launcher)
         toolbar.title = getString(org.devmiyax.yabasanshiro.R.string.app_name)
-        toolbar.subtitle = getVersionName(activity)
+        // toolbar.subtitle = getVersionName(activity)  // 版本号已移除
         activity.setSupportActionBar(toolbar)
 
         drawerLayout =

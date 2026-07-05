@@ -728,7 +728,7 @@ class GameSelectFragment : BrowseSupportFragment(), FileSelectedListener,
     private fun setupUIElements() {
         // setBadgeDrawable(getActivity().getResources().getDrawable( R.drawable.banner));
         title =
-            getString(R.string.app_name) + getVersionName(activity) // Badge, when set, takes precedent
+            getString(R.string.app_name) // Badge, when set, takes precedent
         // over title
         headersState = HEADERS_HIDDEN
         isHeadersTransitionOnBackEnabled = true
