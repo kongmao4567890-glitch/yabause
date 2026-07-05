@@ -144,7 +144,7 @@ android {
             debuggable true
             applicationIdSuffix ".debug"
             versionNameSuffix '-DEBUG'
-            resValue "string", "app_name", "Yaba Sanshiro 2 debug"
+            resValue "string", "app_name", "yaba九尾猫游戏解说优化版20260705"
             buildConfigField 'String', 'AUTHORITY', '"org.devmiyax.yabasanshioro2.debug.contentprovider"'
             packagingOptions {
                 doNotStrip "**/*/*.so"
