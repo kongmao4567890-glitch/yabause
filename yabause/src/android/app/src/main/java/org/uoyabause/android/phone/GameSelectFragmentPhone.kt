@@ -1407,21 +1407,9 @@ class GameSelectFragmentPhone : Fragment(),
                 loadRows()
 
                 dismissDialog()
-                if (isFirstUpdate) {
-                    isFirstUpdate = false
-                    if (this@GameSelectFragmentPhone.requireActivity().intent!!.getBooleanExtra(
-                            "showPin",
-                            false
-                        )
-                    ) {
-                        ShowPinInFragment.newInstance().show(
-                            childFragmentManager,
-                            "sample"
-                        )
-                    } else {
-                        presenter.checkSignIn(signInActivityLauncher)
-                    }
-                }
+                // Removed showPin and checkSignIn dialogs on first update.
+                // Only the folder picker dialog is shown when game list is empty.
+                isFirstUpdate = false
 
                 observer = null
                 presenter.syncBackup()

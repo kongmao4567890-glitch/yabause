@@ -471,7 +471,8 @@ class GameSelectPresenter(
                     val fd: Int = parcelFileDescriptor.fd
                     apath = "/proc/self/fd/$fd"
                 }
-            } catch (fne: FileNotFoundException) {
+            } catch (e: Exception) {
+                Log.e(TAG, "openGameFileDirect: Failed to open URI: ${e.message}", e)
                 apath = ""
             }
             if (apath == "") {
@@ -869,12 +870,13 @@ class GameSelectPresenter(
         }
 
         if (item.file_path.contains("content://") == true) {
-            val intent = Intent(target_.activity, Yabause::class.java)
-            intent.putExtra("org.uoyabause.android.FileNameUri", item.file_path)
-            intent.putExtra("org.uoyabause.android.FileDir", item.iso_file_path)
-            intent.putExtra("org.uoyabause.android.gamecode", item.product_number)
-            launcher.launch(intent)
+            // Use the EXACT SAME code path as the "+" button (openGameFileDirect).
+            // This ensures identical behavior - no FileDir for CHD files,
+            // proper game info extraction, and correct fd handling.
+            val uri = android.net.Uri.parse(item.file_path)
+            openGameFileDirect(uri)
         } else {
+            // Local file path (e.g. installed CHD in app private storage)
             val intent = Intent(target_.activity, Yabause::class.java)
             intent.putExtra("org.uoyabause.android.FileNameEx", item.file_path)
             intent.putExtra("org.uoyabause.android.gamecode", item.product_number)
