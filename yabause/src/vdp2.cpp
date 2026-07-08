@@ -113,7 +113,7 @@ static s64 diffticks = 0;
 static u32 framecount = 0;
 static s64 onesecondticks = 0;
 static int enableFrameLimit = 1;
-static int frameLimitMultiplier = 10; // 10 = 1x, 20 = 2x, 25 = 2.5x, 30 = 3x, etc.
+static int frameLimitShift = 0; // 0 = 60Hz, 1 = 120Hz
 
 //#define LOG yprintf
 #define PROFILE_RENDERING 0
@@ -756,132 +756,30 @@ void VDP2genVRamCyclePattern() {
   }
 }
 
-// 0=1x, 1=Unlimited, 2=2x, 3=2.5x, 4=3x, 5=3.5x, 6=4x, 7=4.5x, 8=5x, 9=5.5x, 10=6x, 11=6.5x, 12=7x, 13=7.5x, 14=8x
+// 0 .. 60Hz, 1 .. no limit, 2 .. 2x(120Hz)
 void VDP2SetFrameLimit(int mode) {
   switch (mode) {
   case 0:
     enableFrameLimit = 1;
-    frameLimitMultiplier = 10; // 1x = 60Hz
+    frameLimitShift = 0; // 60Hz
     framecount = 0;
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
     break;
   case 1:
-    // Unlimited: use very high multiplier to skip almost all frames
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 200; // 20x = effectively unlimited
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
+    enableFrameLimit = 0;
+    frameLimitShift = 0;
     break;
   case 2:
     enableFrameLimit = 1;
-    frameLimitMultiplier = 20; // 2x = 120Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 3:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 25; // 2.5x = 150Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 4:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 30; // 3x = 180Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 5:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 35; // 3.5x = 210Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 6:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 40; // 4x = 240Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 7:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 45; // 4.5x = 270Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 8:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 50; // 5x = 300Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 9:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 55; // 5.5x = 330Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 10:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 60; // 6x = 360Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 11:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 65; // 6.5x = 390Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 12:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 70; // 7x = 420Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 13:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 75; // 7.5x = 450Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 14:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 80; // 8x = 480Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 15:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 100; // 10x = 600Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 16:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 200; // 20x = 1200Hz
+    frameLimitShift = 1; // 120Hz
     framecount = 0;
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
     break;
   default:
     enableFrameLimit = 1;
-    frameLimitMultiplier = 10;
+    frameLimitShift = 0;
     framecount = 0;
     onesecondticks = 0;
     lastticks = YabauseGetTicks();
@@ -893,65 +791,39 @@ void VDP2SetFrameLimit(int mode) {
 void frameSkipAndLimit() {
   if (FrameAdvanceVariable == 0 && enableFrameLimit )
   {
-    // Use multiplier-based calculation: fps = baseFps * multiplier / 10
-    // OneFrameTime adjusted = OneFrameTime * 10 / multiplier
-    const u32 baseFps = (yabsys.IsPal ? 50 : 60);
-    const u32 fps = baseFps * frameLimitMultiplier / 10;
-    const u64 adjustedFrameTime = yabsys.OneFrameTime * 10 / frameLimitMultiplier;
+    const u32 fps = (yabsys.IsPal ? 50 : 60) << frameLimitShift ;
     framecount++;
     curticks = YabauseGetTicks();
     if (framecount > fps)
     {
       onesecondticks -= yabsys.tickfreq;
-      if (onesecondticks > (s64)(adjustedFrameTime * 4)) {
+      if (onesecondticks > (s64)( (yabsys.OneFrameTime>>frameLimitShift)  * 4)) {
         onesecondticks = 0;
       }
       framecount = 1;
-      lastticks = (curticks - adjustedFrameTime);
+      lastticks = (curticks - (yabsys.OneFrameTime>>frameLimitShift) );
     }
 
-    u64 targetTime = (adjustedFrameTime * (u64)framecount);
+    u64 targetTime = ( (yabsys.OneFrameTime>>frameLimitShift)  * (u64)framecount);
     if (framecount == fps) {
       targetTime = yabsys.tickfreq; // 1sec
     }
 
     diffticks = curticks - lastticks;
 
-    // Scale frame skip count with multiplier for high speeds
-    // At 2x skip 1, 3x skip 2, 4x skip 3, etc.
-    // Cap at 8 consecutive skips: the erase now always executes during skip,
-    // so more skips are safe. Vdp1EraseWrite clears the readframe every frame
-    // regardless of skip state, preventing stale content accumulation.
-    int framesToSkip = (frameLimitMultiplier / 10) - 1;
-    if (framesToSkip < 1) framesToSkip = 1;
-    if (framesToSkip > 8) framesToSkip = 8;
-
     if ( autoframeskipenab && (onesecondticks + diffticks) > targetTime )
     {
+      LOG("Frame skip target:%lu current:%lu", targetTime, (onesecondticks + diffticks));
       // Skip the next frame
       skipnextframe = 1;
 
-      // Scale frames to skip based on speed multiplier
-      framestoskip = framesToSkip;
+      // How many frames should we skip?
+      framestoskip = 1;
 
-    } else if ((onesecondticks + diffticks) < targetTime) {
-      // Not skipping, running within target
     }
 
-    // At 1x speed, use the upstream's fixed threshold of 1000 to keep
-    // VBlank pacing identical to official yabause. The scaled threshold
-    // (adjustedFrameTime/10) is much larger at 1x (~1.6ms vs 1us), which
-    // over-aggressively subtracts from targetTime and triggers unnecessary
-    // frame skips during brief slowdowns (e.g. game loading transitions).
-    // At higher speeds the scaled threshold is still needed for small frame times.
-    u64 waitThreshold;
-    if (frameLimitMultiplier <= 10) {
-      waitThreshold = 1000;
-    } else {
-      waitThreshold = adjustedFrameTime / 10;
-      if (waitThreshold < 100) waitThreshold = 100;
-    }
-    targetTime -= waitThreshold;
+    // just wait for next vsync
+    targetTime -= 1000;
     if ( (onesecondticks + diffticks) < targetTime )
     {
 
@@ -1406,21 +1278,15 @@ void vdp2VBlankOUT(void) {
 #endif 
 
   if (pre_swap_frame_buffer == 0 && skipnextframe && Vdp1External.swap_frame_buffer ){
-    // At high speed (4x+), allow skipping even during VDP1 swap
-    if (frameLimitMultiplier < 40) {
-      skipnextframe = 0;
-      previous_skipped = 0;
-      framestoskip = 1;
-    }
+    skipnextframe = 0;
+    previous_skipped = 0;
+    framestoskip = 1;
   }
 
-  // At high speed (4x+), allow consecutive frame skips
   if (previous_skipped != 0 && skipnextframe != 0) {
-    if (frameLimitMultiplier < 40) {
-      skipnextframe = 0;
-      previous_skipped = 0;
-      framestoskip = 1;
-    }
+    skipnextframe = 0;
+    previous_skipped = 0;
+    framestoskip = 1;
   }
 
   pre_swap_frame_buffer = Vdp1External.swap_frame_buffer;
