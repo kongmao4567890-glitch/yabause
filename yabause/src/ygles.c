@@ -3895,7 +3895,7 @@ void YglRender(void) {
 
     YglLoadIdentity(&mtx);
     cprg = -1;
-    YglTranslatef(&mtx, 0.0f, 0.0f, -1.0f);
+    YglTranslatef(&mtx, 0.0f, 0.0f, 0.0f);
     for (i = 0; i < _Ygl->depth; i++)
     {
       level = _Ygl->levels + i;
@@ -4253,7 +4253,7 @@ void YglRenderDestinationAlpha(void) {
     }
   }
 
-  YglTranslatef(&mtx, 0.0f, 0.0f, -1.0f);
+  YglTranslatef(&mtx, 0.0f, 0.0f, 0.0f);
   for (i = 0; i < _Ygl->depth; i++)
   {
     level = _Ygl->levels + i;
