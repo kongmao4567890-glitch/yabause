@@ -173,11 +173,15 @@ int Ygl_uniformVdp1CommonParam(void * p){
   }
 
   if (param->tessLevelInner != -1) {
-    glUniform1f(param->tessLevelInner, (float)TESS_COUNT);
+    // Use dynamic tessellation level if available, otherwise use default
+    float tessLevel = (prg->tessellation_level > 0) ? (float)prg->tessellation_level : (float)YGL_TESS_COUNT;
+    glUniform1f(param->tessLevelInner, tessLevel);
   }
 
   if (param->tessLevelOuter != -1) {
-    glUniform1f(param->tessLevelOuter, (float)TESS_COUNT);
+    // Use dynamic tessellation level if available, otherwise use default
+    float tessLevel = (prg->tessellation_level > 0) ? (float)prg->tessellation_level : (float)YGL_TESS_COUNT;
+    glUniform1f(param->tessLevelOuter, tessLevel);
   }
 
   if (param->fbo != -1){

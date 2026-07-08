@@ -51,15 +51,6 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #include "smpc.h"
 #include "vdp1.h"
 #include "yabause.h"
-
-#ifdef __ANDROID__
-#include <android/log.h>
-#define VDP2_LOG(...) __android_log_print(ANDROID_LOG_DEBUG, "Vdp2", __VA_ARGS__)
-#define VDP2_LOGE(...) __android_log_print(ANDROID_LOG_ERROR, "Vdp2", __VA_ARGS__)
-#else
-#define VDP2_LOG(...) printf(__VA_ARGS__)
-#define VDP2_LOGE(...) fprintf(stderr, __VA_ARGS__)
-#endif
 #include "movie.h"
 #include "osdcore.h"
 #include "threads.h"
@@ -113,7 +104,7 @@ static s64 diffticks = 0;
 static u32 framecount = 0;
 static s64 onesecondticks = 0;
 static int enableFrameLimit = 1;
-static int frameLimitShift = 0; // 0 = 60Hz, 1 = 120Hz
+static int frameLimitShift = 0;
 
 //#define LOG yprintf
 #define PROFILE_RENDERING 0
@@ -488,50 +479,8 @@ void Vdp2Reset(void) {
    Vdp2Regs->COBG = 0x0000;
    Vdp2Regs->COBB = 0x0000;
 
-   // Reset color calculation ratio registers that were missing
-   // (CCRSA-D for sprites, CCRR for RBG0, CCRLB for line color)
-   Vdp2Regs->CCRSA = 0x0000;
-   Vdp2Regs->CCRSB = 0x0000;
-   Vdp2Regs->CCRSC = 0x0000;
-   Vdp2Regs->CCRSD = 0x0000;
-   Vdp2Regs->CCRR = 0x0000;
-   Vdp2Regs->CCRLB = 0x0000;
-
-   // Reset VRAM cycle pattern registers
-   Vdp2Regs->CYCA0L = 0x0000;
-   Vdp2Regs->CYCA0U = 0x0000;
-   Vdp2Regs->CYCA1L = 0x0000;
-   Vdp2Regs->CYCA1U = 0x0000;
-   Vdp2Regs->CYCB0L = 0x0000;
-   Vdp2Regs->CYCB0U = 0x0000;
-   Vdp2Regs->CYCB1L = 0x0000;
-   Vdp2Regs->CYCB1U = 0x0000;
-
-   // Reset additional registers
-   Vdp2Regs->MZCTL = 0x0000;
-   Vdp2Regs->BMPNB = 0x0000;
-
    yabsys.VBlankLineCount = 225;
    Vdp2Internal.ColorMode = 0;
-
-   // Clear ColorRam to prevent stale palette data from persisting
-   // across scene transitions (causes garbled colors / 花屏)
-   if (Vdp2ColorRam != NULL) {
-     memset(Vdp2ColorRam, 0, 0x1000);
-     Vdp2ColorRamUpdated = 1;
-     if (VIDCore != NULL && VIDCore->OnUpdateColorRamWord != NULL) {
-       for (int i = 0; i < 0x1000; i += 2) {
-         VIDCore->OnUpdateColorRamWord(i);
-       }
-     }
-   }
-
-   // Clear per-line register copies to prevent stale color calculation
-   // data (CCRNA/CCRNB/CCRR/CLOFEN etc.) from persisting across scene
-   // transitions.  Vdp2Lines is populated every frame during scanline
-   // processing, but if a reset happens mid-frame the remaining lines
-   // would still hold old data until the next full frame completes.
-   memset(Vdp2Lines, 0, sizeof(Vdp2) * 270);
 
    Vdp2External.disptoggle = 0xFF;
    Vdp2External.perline_alpha_a = 0;
@@ -1336,15 +1285,8 @@ void vdp2VBlankOUT(void) {
   VIDCore->Vdp2DrawStart();
   
   // VBlank Erase
-  // Always execute the erase, even during frame-skip. The erase clears the
-  // readframe to prepare it for the next frame's drawing. Skipping it causes
-  // stale content to persist: after the buffer swap, the un-erased buffer
-  // becomes the drawframe, VDP1 draws on top of old content, and on the next
-  // rendered frame that mixed content is displayed (garbled screen).
-  // This is safe because Vdp2DrawScreens is a dummy during skip, so the
-  // display is not updated — the erased buffer only affects the next swap.
-  if (Vdp1External.vbalnk_erase ||  // VBlank Erace (VBE1)
-      ((Vdp1Regs->FBCR & 2) == 0)) {  // One cycle mode
+  if (Vdp1External.vbalnk_erase ||  // VBlank Erace (VBE1) 
+    ((Vdp1Regs->FBCR & 2) == 0)) {  // One cycle mode
     VIDCore->Vdp1EraseWrite();
   }
 
@@ -1371,9 +1313,11 @@ void vdp2VBlankOUT(void) {
     // if Plot Trigger mode == 0x02 draw start
     if (Vdp1External.frame_change_plot == 1 || Vdp1External.status == VDP1_STATUS_RUNNING ){
       FRAMELOG("[VDP1] frame_change_plot == 1 start drawing immidiatly", Vdp1Regs->EDSR);
+      LOG("[VDP1] Start Drawing %d", yabsys.LineCount);
       Vdp1Regs->addr = 0;
       Vdp1Regs->COPR = 0;
       Vdp1Draw();
+      LOG("[VDP1] End Drawing %d", yabsys.LineCount);
       isrender = 1;
     }
   }

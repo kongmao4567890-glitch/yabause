@@ -491,6 +491,7 @@ typedef struct {
    int colornumber;
    GLuint interuput_texture;
    u32 specialcolormode;
+   int tessellation_level;  // Dynamic tessellation level
 } YglProgram;
 
 typedef struct {
