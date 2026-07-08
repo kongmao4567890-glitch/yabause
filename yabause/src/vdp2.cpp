@@ -919,15 +919,12 @@ void frameSkipAndLimit() {
 
     // Scale frame skip count with multiplier for high speeds
     // At 2x skip 1, 3x skip 2, 4x skip 3, etc.
-    // Cap at 4 consecutive skips to prevent black screen:
-    // During skips, Vdp2DrawScreens is dummy (no composite) but Vdp1EraseWrite
-    // still clears the display buffer. Too many consecutive skips = erased
-    // buffer never gets composited = black screen.
-    // Speed is barely affected: CPU still runs at target speed, just renders
-    // 1 extra frame per cycle (e.g. 7x: skip 4 render 1 instead of skip 6 render 1)
+    // Cap at 8 consecutive skips: the erase now always executes during skip,
+    // so more skips are safe. Vdp1EraseWrite clears the readframe every frame
+    // regardless of skip state, preventing stale content accumulation.
     int framesToSkip = (frameLimitMultiplier / 10) - 1;
     if (framesToSkip < 1) framesToSkip = 1;
-    if (framesToSkip > 4) framesToSkip = 4;
+    if (framesToSkip > 8) framesToSkip = 8;
 
     if ( autoframeskipenab && (onesecondticks + diffticks) > targetTime )
     {
@@ -941,10 +938,19 @@ void frameSkipAndLimit() {
       // Not skipping, running within target
     }
 
-    // Scale the wait threshold proportionally to frame time
-    // (was fixed at 1000 which is too large for small frame times at high speed)
-    u64 waitThreshold = adjustedFrameTime / 10;
-    if (waitThreshold < 100) waitThreshold = 100;
+    // At 1x speed, use the upstream's fixed threshold of 1000 to keep
+    // VBlank pacing identical to official yabause. The scaled threshold
+    // (adjustedFrameTime/10) is much larger at 1x (~1.6ms vs 1us), which
+    // over-aggressively subtracts from targetTime and triggers unnecessary
+    // frame skips during brief slowdowns (e.g. game loading transitions).
+    // At higher speeds the scaled threshold is still needed for small frame times.
+    u64 waitThreshold;
+    if (frameLimitMultiplier <= 10) {
+      waitThreshold = 1000;
+    } else {
+      waitThreshold = adjustedFrameTime / 10;
+      if (waitThreshold < 100) waitThreshold = 100;
+    }
     targetTime -= waitThreshold;
     if ( (onesecondticks + diffticks) < targetTime )
     {
@@ -1464,13 +1470,15 @@ void vdp2VBlankOUT(void) {
   VIDCore->Vdp2DrawStart();
   
   // VBlank Erase
-  // Skip erase during frame-skip: Vdp2DrawScreens is replaced by a dummy
-  // during skip, so erasing the display buffer without compositing it
-  // produces a blank or partially-drawn frame.  Guard with !skipnextframe
-  // to keep the last fully-rendered frame visible during skip.
-  if (!skipnextframe &&
-      (Vdp1External.vbalnk_erase ||  // VBlank Erace (VBE1)
-       ((Vdp1Regs->FBCR & 2) == 0))) {  // One cycle mode
+  // Always execute the erase, even during frame-skip. The erase clears the
+  // readframe to prepare it for the next frame's drawing. Skipping it causes
+  // stale content to persist: after the buffer swap, the un-erased buffer
+  // becomes the drawframe, VDP1 draws on top of old content, and on the next
+  // rendered frame that mixed content is displayed (garbled screen).
+  // This is safe because Vdp2DrawScreens is a dummy during skip, so the
+  // display is not updated — the erased buffer only affects the next swap.
+  if (Vdp1External.vbalnk_erase ||  // VBlank Erace (VBE1)
+      ((Vdp1Regs->FBCR & 2) == 0)) {  // One cycle mode
     VIDCore->Vdp1EraseWrite();
   }
 
@@ -1480,7 +1488,7 @@ void vdp2VBlankOUT(void) {
   {
     vdp1_frame++;
     if (Vdp1External.manualerase) {  // Manual Erace (FCM1 FCT0) Just before frame changing
-      if (!skipnextframe) { VIDCore->Vdp1EraseWrite(); }
+      VIDCore->Vdp1EraseWrite();
       Vdp1External.manualerase = 0;
     }
 
