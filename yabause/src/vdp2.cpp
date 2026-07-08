@@ -488,8 +488,50 @@ void Vdp2Reset(void) {
    Vdp2Regs->COBG = 0x0000;
    Vdp2Regs->COBB = 0x0000;
 
+   // Reset color calculation ratio registers that were missing
+   // (CCRSA-D for sprites, CCRR for RBG0, CCRLB for line color)
+   Vdp2Regs->CCRSA = 0x0000;
+   Vdp2Regs->CCRSB = 0x0000;
+   Vdp2Regs->CCRSC = 0x0000;
+   Vdp2Regs->CCRSD = 0x0000;
+   Vdp2Regs->CCRR = 0x0000;
+   Vdp2Regs->CCRLB = 0x0000;
+
+   // Reset VRAM cycle pattern registers
+   Vdp2Regs->CYCA0L = 0x0000;
+   Vdp2Regs->CYCA0U = 0x0000;
+   Vdp2Regs->CYCA1L = 0x0000;
+   Vdp2Regs->CYCA1U = 0x0000;
+   Vdp2Regs->CYCB0L = 0x0000;
+   Vdp2Regs->CYCB0U = 0x0000;
+   Vdp2Regs->CYCB1L = 0x0000;
+   Vdp2Regs->CYCB1U = 0x0000;
+
+   // Reset additional registers
+   Vdp2Regs->MZCTL = 0x0000;
+   Vdp2Regs->BMPNB = 0x0000;
+
    yabsys.VBlankLineCount = 225;
    Vdp2Internal.ColorMode = 0;
+
+   // Clear ColorRam to prevent stale palette data from persisting
+   // across scene transitions (causes garbled colors / 花屏)
+   if (Vdp2ColorRam != NULL) {
+     memset(Vdp2ColorRam, 0, 0x1000);
+     Vdp2ColorRamUpdated = 1;
+     if (VIDCore != NULL && VIDCore->OnUpdateColorRamWord != NULL) {
+       for (int i = 0; i < 0x1000; i += 2) {
+         VIDCore->OnUpdateColorRamWord(i);
+       }
+     }
+   }
+
+   // Clear per-line register copies to prevent stale color calculation
+   // data (CCRNA/CCRNB/CCRR/CLOFEN etc.) from persisting across scene
+   // transitions.  Vdp2Lines is populated every frame during scanline
+   // processing, but if a reset happens mid-frame the remaining lines
+   // would still hold old data until the next full frame completes.
+   memset(Vdp2Lines, 0, sizeof(Vdp2) * 270);
 
    Vdp2External.disptoggle = 0xFF;
    Vdp2External.perline_alpha_a = 0;
