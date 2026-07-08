@@ -1933,6 +1933,10 @@ INLINE void Vdp2SetSpecialPriority(vdp2draw_struct *info, u8 dot, u32 * craminde
     }
     (*cramindex) |= priority << 16;
   }
+  else {
+    priority = info->priority & 0x7;
+    (*cramindex) |= priority << 16;
+  }
 }
 
 INLINE u32 Vdp2GetAlpha(vdp2draw_struct *info, u8 dot, u32 cramindex) {
@@ -2499,7 +2503,7 @@ static void FASTCALL Vdp2DrawBitmapCoordinateInc(vdp2draw_struct *info, YglTextu
               if (((T2ReadWord(Vdp2ColorRam, (color << 1) & 0xFFF) & 0x8000) == 0)) { alpha = 0xFF; }
               break;
             }
-            *texture->textdata++ = color | (alpha<<24);
+            *texture->textdata++ = color | ((info->priority & 0x7) << 16) | (alpha<<24);
           }
         }
       }
@@ -2531,7 +2535,7 @@ static void FASTCALL Vdp2DrawBitmapCoordinateInc(vdp2draw_struct *info, YglTextu
             break;
           }
         }
-        *texture->textdata++ = color | (alpha << 24);
+        *texture->textdata++ = color | ((info->priority & 0x7) << 16) | (alpha << 24);
       }
       break;
     }

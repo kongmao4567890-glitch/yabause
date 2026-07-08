@@ -318,6 +318,7 @@ const GLchar Yglprg_normal_cram_f[] =
 "  vec4 txcol = texelFetch( s_color,  ivec2( ( int(txindex.g*65280.0) | int(txindex.r*255.0)) ,0 )  , 0 );\n"
 "  fragColor = clamp(txcol+u_color_offset,vec4(0.0),vec4(1.0));\n"
 "  fragColor.a = txindex.a;\n"
+"  gl_FragDepth = ((txindex.b*255.0/10.0) +1.0)/2.0;\n"
 "}\n";
 
 const GLchar Yglprg_normal_cram_special_priority_f[] =
@@ -488,6 +489,7 @@ const GLchar Yglprg_normal_cram_addcol_f[] =
 "  vec4 txcol = texelFetch( s_color,  ivec2( ( int(txindex.g*65280.0) | int(txindex.r*255.0)) ,0 )  , 0 );\n"
 "  fragColor = txcol+u_color_offset;\n"
 "  if( txindex.a > 0.5) { fragColor.a = 1.0;} else {fragColor.a = 0.0;}\n"
+"  gl_FragDepth = ((txindex.b*255.0/10.0) +1.0)/2.0;\n"
 "}\n";
 
 const GLchar * pYglprg_normal_cram_addcol_f[] = { Yglprg_normal_cram_addcol_f, NULL };
