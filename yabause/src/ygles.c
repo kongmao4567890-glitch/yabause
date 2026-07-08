@@ -1722,82 +1722,6 @@ int YglCheckTriangle( const float * point ){
 
 //////////////////////////////////////////////////////////////////////////////
 
-// Calculate polygon area using shoelace formula
-float YglCalculatePolygonArea(const float * vertices) {
-  float area = 0.0f;
-  int j = 3; // Last vertex index (3 for quad)
-
-  for (int i = 0; i < 4; i++) {
-    area += (vertices[j * 2] + vertices[i * 2]) * (vertices[j * 2 + 1] - vertices[i * 2 + 1]);
-    j = i;
-  }
-
-  return fabsf(area) * 0.5f;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-// Calculate maximum edge length of polygon
-float YglCalculateMaxEdgeLength(const float * vertices) {
-  float maxLength = 0.0f;
-
-  for (int i = 0; i < 4; i++) {
-    int next = (i + 1) % 4;
-    float dx = vertices[next * 2] - vertices[i * 2];
-    float dy = vertices[next * 2 + 1] - vertices[i * 2 + 1];
-    float length = sqrtf(dx * dx + dy * dy);
-
-    if (length > maxLength) {
-      maxLength = length;
-    }
-  }
-
-  return maxLength;
-}
-
-//////////////////////////////////////////////////////////////////////////////
-
-// Determine optimal tessellation count based on polygon size
-int YglGetOptimalTessCount(const float * vertices) {
-
-  // Calculate polygon metrics
-  float area = YglCalculatePolygonArea(vertices);
-  float maxEdge = YglCalculateMaxEdgeLength(vertices);
-
-  // Thresholds for tessellation levels
-  const float SMALL_AREA_THRESHOLD = 100.0f;    // Small polygons
-  const float MEDIUM_AREA_THRESHOLD = 1000.0f;  // Medium polygons
-  const float LARGE_AREA_THRESHOLD = 10000.0f;  // Large polygons
-
-  const float SMALL_EDGE_THRESHOLD = 16.0f;     // Small edges
-  const float MEDIUM_EDGE_THRESHOLD = 64.0f;    // Medium edges
-  const float LARGE_EDGE_THRESHOLD = 256.0f;    // Large edges
-
-  // Determine tessellation count based on area and edge length
-  int tessCount = 1; // Minimum tessellation
-
-  // Use area as primary factor
-  if (area > LARGE_AREA_THRESHOLD || maxEdge > LARGE_EDGE_THRESHOLD) {
-    tessCount = YGL_TESS_COUNT; // Use maximum tessellation (8)
-  }
-  else if (area > MEDIUM_AREA_THRESHOLD || maxEdge > MEDIUM_EDGE_THRESHOLD) {
-    tessCount = YGL_TESS_COUNT / 2; // Use half tessellation (4)
-  }
-  else if (area > SMALL_AREA_THRESHOLD || maxEdge > SMALL_EDGE_THRESHOLD) {
-    tessCount = YGL_TESS_COUNT / 4; // Use quarter tessellation (2)
-  }
-  else {
-    tessCount = 1; // No tessellation for very small polygons
-  }
-
-  // Ensure minimum tessellation count of 1
-  if (tessCount < 1) {
-    tessCount = 1;
-  }
-
-  return tessCount;
-}
-
 static int YglQuadGrowShading_in(YglSprite * input, YglTexture * output, float * colors, YglCache * c, int cash_flg);
 static int YglTriangleGrowShading_in(YglSprite * input, YglTexture * output, float * colors, YglCache * c, int cash_flg);
 static int YglQuadGrowShading_tesselation_in(YglSprite * input, YglTexture * output, float * colors, YglCache * c, int cash_flg);
@@ -1893,9 +1817,6 @@ int YglTriangleGrowShading_in(YglSprite * input, YglTexture * output, float * co
   program = YglGetProgram(input, prg);
   if (program == NULL || program->quads == NULL) return -1;
 
-  // Calculate optimal tessellation count based on polygon size
-  int optimal_tess_count = YglGetOptimalTessCount(input->vertices);
-
   program->color_offset_val[0] = (float)(input->cor) / 255.0f;
   program->color_offset_val[1] = (float)(input->cog) / 255.0f;
   program->color_offset_val[2] = (float)(input->cob) / 255.0f;
@@ -1957,7 +1878,7 @@ int YglTriangleGrowShading_in(YglSprite * input, YglTexture * output, float * co
     }
   }
 
-  int tess_count = optimal_tess_count;
+  int tess_count = YGL_TESS_COUNT;
   float s_step = (float)(texv[2].s-texv[0].s)/(float)tess_count;
   float t_step = (float)(texv[2].t-texv[0].t)/(float)tess_count;
 
@@ -2312,9 +2233,6 @@ int YglQuadGrowShading_tesselation_in(YglSprite * input, YglTexture * output, fl
   int prg = PG_VFP1_GOURAUDSAHDING_TESS;
   float * pos;
 
-  // Calculate optimal tessellation count based on polygon size
-  int optimal_tess_count = YglGetOptimalTessCount(input->vertices);
-
   if (input->blendmode == VDP1_COLOR_CL_GROW_HALF_TRANSPARENT)
   {
     prg = PG_VFP1_GOURAUDSAHDING_HALFTRANS_TESS;
@@ -2333,8 +2251,6 @@ int YglQuadGrowShading_tesselation_in(YglSprite * input, YglTexture * output, fl
   program = YglGetProgram(input, prg);
   if (program == NULL) return -1;
 
-  // Store the optimal tessellation count for use in shader
-  program->tessellation_level = optimal_tess_count;
   //YGLLOG( "program->quads = %X,%X,%d/%d\n",program->quads,program->vertexBuffer,program->currentQuad,program->maxQuad );
   if (program->quads == NULL) {
     int a = 0;

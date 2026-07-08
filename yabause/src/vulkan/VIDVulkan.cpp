@@ -245,7 +245,6 @@ int VIDVulkan::init(void) {
   frameLimitMode = 0;
   rebuildSwapChain = 0;
   rebuildPipelines = 0;
-  polygonMode = PERSPECTIVE_CORRECTION;
 
   if ((rtn = VulkanScene::init()) != 0) {
     return rtn;
@@ -412,7 +411,6 @@ void VIDVulkan::Vdp1DrawStart(void) {
     pipleLineFactory->dicardAllPielines();
     vdp1->setPolygonMode(polygonMode);
     Vdp1GroundShading::polygonMode = polygonMode;
-    rebuildPipelines = 0;
   }
 
   vdp1->drawStart();
