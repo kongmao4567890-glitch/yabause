@@ -562,7 +562,10 @@ static u32 FASTCALL Vdp1ReadPolygonColor(vdp1cmd_struct *cmd)
         color = VDP1COLOR(0, colorcl, priority, 0, 0, VDP1COLOR16TO24(dot));
       }
       else {
-        Vdp1MaskSpritePixel(fixVdp2Regs->SPCTL & 0xF, &dot, &colorcl);
+        // Restore per-pixel priority extraction (commit 15e4171e replaced
+        // Vdp1ProcessSpritePixel with Vdp1MaskSpritePixel, which dropped
+        // per-pixel priority and caused VDP1/VDP2 layer bleed-through).
+        Vdp1ProcessSpritePixel(fixVdp2Regs->SPCTL & 0xF, &dot, &shadow, &normalshadow, &priority, &colorcl);
         color = VDP1COLOR(1, colorcl, priority, 0, 0, dot);
       }
     }
@@ -888,7 +891,8 @@ static void FASTCALL Vdp1ReadTexture(vdp1cmd_struct *cmd, YglSprite *sprite, Ygl
           if ((colorindex & 0x8000) && (fixVdp2Regs->SPCTL & 0x20)) {
             *texture->textdata++ = VDP1COLOR(0, colorcl, priority, 0, 0, VDP1COLOR16TO24(colorindex));
           } else {
-            Vdp1MaskSpritePixel(fixVdp2Regs->SPCTL & 0xF, &colorindex,&colorcl);
+            // Restore per-pixel priority extraction (commit 15e4171e regression).
+            Vdp1ProcessSpritePixel(fixVdp2Regs->SPCTL & 0xF, &colorindex, &shadow, &normalshadow, &priority, &colorcl);
             *texture->textdata++ = VDP1COLOR(1, colorcl, priority, 0, sprite_window, colorindex);
           }
         }
@@ -932,7 +936,8 @@ static void FASTCALL Vdp1ReadTexture(vdp1cmd_struct *cmd, YglSprite *sprite, Ygl
              *texture->textdata++ = VDP1COLOR(0, colorcl, priority, 0, 0, VDP1COLOR16TO24(dot));
           }
           else {
-            Vdp1MaskSpritePixel(fixVdp2Regs->SPCTL & 0xF, &dot, &colorcl);
+            // Restore per-pixel priority extraction (commit 15e4171e regression).
+            Vdp1ProcessSpritePixel(fixVdp2Regs->SPCTL & 0xF, &dot, &shadow, &normalshadow, &priority, &colorcl);
             *texture->textdata++ = VDP1COLOR(1, colorcl, priority, 0, 0, dot );
           }
         }
@@ -2474,45 +2479,69 @@ static void FASTCALL Vdp2DrawBitmapCoordinateInc(vdp2draw_struct *info, YglTextu
 
     switch (info->colornumber) {
     case 0:
+      // Restore 1.0.5 linear addressing (commit 99350f81 introduced
+      // per-pixel horizontal wrap with an operator-precedence bug).
       for (j = 0; j < vdp2width; j++)
       {
-        u32 h = ((j*inch) >> 8);
-        u32 addr = ((sh + h)&(info->cellw-1) + (sv*info->cellw))>>1; // Not confrimed!
-        if (addr >= 0x80000) {
-          *texture->textdata++ = 0x0000;
+        int h = ((j*inch) >> 8);
+        int xpos = sh + h;
+        if (xpos < 0 || xpos >= (int)info->cellw) {
+          *texture->textdata++ = 0x0000; continue;
         }
+        u32 addr = ((u32)xpos + sv * info->cellw) >> 1;
+        if (addr >= 0x80000) {
+          *texture->textdata++ = 0x0000; continue;
+        }
+        u8 dot = T1ReadByte(Vdp2Ram, baseaddr + addr);
+        u32 alpha = info->alpha;
+        if (!(h & 0x01)) dot >> 4;
+        if (!(dot & 0xF) && info->transparencyenable) *texture->textdata++ = 0x00000000;
         else {
-          u8 dot = T1ReadByte(Vdp2Ram, baseaddr + addr);
-          u32 alpha = info->alpha;
-          if (!(h & 0x01)) dot >> 4;
-          if (!(dot & 0xF) && info->transparencyenable) *texture->textdata++ = 0x00000000;
-          else {
-            color = (info->coloroffset + ((info->paladdr << 4) | (dot & 0xF)));
-            switch (info->specialcolormode)
-            {
-            case 1: if (info->specialcolorfunction == 0) { alpha = 0xFF; } break;
-            case 2:
-              if (info->specialcolorfunction == 0) { alpha = 0xFF; }
-              else { if ((info->specialcode & (1 << ((dot & 0xF) >> 1))) == 0) { alpha = 0xFF; } }
-              break;
-            case 3:
-              if (((T2ReadWord(Vdp2ColorRam, (color << 1) & 0xFFF) & 0x8000) == 0)) { alpha = 0xFF; }
-              break;
-            }
-            *texture->textdata++ = color | (alpha<<24);
+          color = (info->coloroffset + ((info->paladdr << 4) | (dot & 0xF)));
+          switch (info->specialcolormode)
+          {
+          case 1: if (info->specialcolorfunction == 0) { alpha = 0xFF; } break;
+          case 2:
+            if (info->specialcolorfunction == 0) { alpha = 0xFF; }
+            else { if ((info->specialcode & (1 << ((dot & 0xF) >> 1))) == 0) { alpha = 0xFF; } }
+            break;
+          case 3:
+            if (((T2ReadWord(Vdp2ColorRam, (color << 1) & 0xFFF) & 0x8000) == 0)) { alpha = 0xFF; }
+            break;
           }
+          *texture->textdata++ = color | (alpha<<24);
         }
       }
       break;
     case 1: {
 
-      // Shining force 3 battle sciene
-      u32 maxaddr = (info->cellw * info->cellh) + info->cellw;
+      // Shining force 3 battle scene (RBG sea background).
+      //
+      // Regression fix: commit 99350f81 introduced the horizontal wrap
+      // ((sh + h) & (cellw-1)) which tiles the RBG (sea) bitmap across the
+      // whole screen. That draws sea texels into the screen region where the
+      // VDP1 floor polygons should be visible. Because the sea layer has a
+      // higher priority than the floor, those tiled texels cover the floor and
+      // produce the "seawater bleeding through the floor" (穿膜) defect.
+      //
+      // yabasanshiro 1.0.5 used a linear (non-wrapping) read, so texels beyond
+      // the bitmap width were simply transparent and the floor showed through
+      // correctly. Restore that behaviour: read linearly and treat any
+      // out-of-bounds coordinate as transparent (consistent with the
+      // OVERMODE_TRANSE handling used by Vdp2DrawRotation_in).
+      u32 maxaddr = (u32)info->cellw * info->cellh;
       for (j = 0; j < vdp2width; j++)
       {
         int h = ((j*inch) >> 8);
         u32 alpha = info->alpha;
-        u32 addr = ((sh + h)&(info->cellw-1))  + sv * info->cellw;
+        int xpos = sh + h;
+        if (xpos < 0 || xpos >= (int)info->cellw) {
+          *texture->textdata++ = 0; continue;
+        }
+        u32 addr = (u32)xpos + sv * info->cellw;
+        if (addr >= maxaddr) {
+          *texture->textdata++ = 0; continue;
+        }
         u8 dot = T1ReadByte(Vdp2Ram, baseaddr + addr);
         if (!dot && info->transparencyenable) {
           *texture->textdata++ = 0; continue;
@@ -2536,30 +2565,41 @@ static void FASTCALL Vdp2DrawBitmapCoordinateInc(vdp2draw_struct *info, YglTextu
       break;
     }
     case 2:
-      //baseaddr += ((sh + sv * info->cellw) << 1);
+      // Restore 1.0.5 linear addressing (commit 99350f81 introduced per-pixel wrap).
       for (j = 0; j < vdp2width; j++)
       {
         int h = ((j*inch) >> 8);
-        u32 addr = (((sh + h)&(info->cellw - 1)) + sv * info->cellw) << 1;  // Not confrimed
+        int xpos = sh + h;
+        if (xpos < 0 || xpos >= (int)info->cellw) {
+          *texture->textdata++ = 0x00000000; continue;
+        }
+        u32 addr = ((u32)xpos + sv * info->cellw) << 1;
         *texture->textdata++ = Vdp2GetPixel16bpp(info, baseaddr + addr);
-
       }
       break;
     case 3:
-      //baseaddr += ((sh + sv * info->cellw) << 1);
+      // Restore 1.0.5 linear addressing (commit 99350f81 introduced per-pixel wrap).
       for (j = 0; j < vdp2width; j++)
       {
         int h = ((j*inch) >> 8);
-        u32 addr = (((sh + h)&(info->cellw - 1)) + sv * info->cellw) << 1;  // Not confrimed
+        int xpos = sh + h;
+        if (xpos < 0 || xpos >= (int)info->cellw) {
+          *texture->textdata++ = 0x00000000; continue;
+        }
+        u32 addr = ((u32)xpos + sv * info->cellw) << 1;
         *texture->textdata++ = Vdp2GetPixel16bppbmp(info, baseaddr + addr);
       }
       break;
     case 4:
-      //baseaddr += ((sh + sv * info->cellw) << 2);
+      // Restore 1.0.5 linear addressing (commit 99350f81 introduced per-pixel wrap).
       for (j = 0; j < vdp2width; j++)
       {
         int h = (j*inch >> 8);
-        u32 addr = (((sh + h)&(info->cellw - 1)) + sv * info->cellw) << 2;  // Not confrimed
+        int xpos = sh + h;
+        if (xpos < 0 || xpos >= (int)info->cellw) {
+          *texture->textdata++ = 0x00000000; continue;
+        }
+        u32 addr = ((u32)xpos + sv * info->cellw) << 2;
         *texture->textdata++ = Vdp2GetPixel32bppbmp(info, baseaddr + addr);
       }
       break;
