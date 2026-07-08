@@ -1422,8 +1422,13 @@ void vdp2VBlankOUT(void) {
   VIDCore->Vdp2DrawStart();
   
   // VBlank Erase
-  if (Vdp1External.vbalnk_erase ||  // VBlank Erace (VBE1) 
-    ((Vdp1Regs->FBCR & 2) == 0)) {  // One cycle mode
+  // Skip erase during frame-skip: Vdp2DrawScreens is replaced by a dummy
+  // during skip, so erasing the display buffer without compositing it
+  // produces a blank or partially-drawn frame.  Guard with !skipnextframe
+  // to keep the last fully-rendered frame visible during skip.
+  if (!skipnextframe &&
+      (Vdp1External.vbalnk_erase ||  // VBlank Erace (VBE1)
+       ((Vdp1Regs->FBCR & 2) == 0))) {  // One cycle mode
     VIDCore->Vdp1EraseWrite();
   }
 
@@ -1433,7 +1438,7 @@ void vdp2VBlankOUT(void) {
   {
     vdp1_frame++;
     if (Vdp1External.manualerase) {  // Manual Erace (FCM1 FCT0) Just before frame changing
-      VIDCore->Vdp1EraseWrite();
+      if (!skipnextframe) { VIDCore->Vdp1EraseWrite(); }
       Vdp1External.manualerase = 0;
     }
 

@@ -235,7 +235,7 @@ extern "C" int Vdp1Init(void) {
    if ((Vdp1Regs = (Vdp1 *) malloc(sizeof(Vdp1))) == NULL)
       return -1;
 
-   memset(Vdp1Regs, 0, sizeof(Vdp1Regs));      
+   memset(Vdp1Regs, 0, sizeof(Vdp1));
 
    if ((Vdp1Ram = T1MemoryInit(0x80000)) == NULL)
       return -1;
@@ -336,10 +336,17 @@ extern "C" void Vdp1Reset(void) {
   
    Vdp1Regs->PTMR = 0;
    Vdp1Regs->MODR = 0x1000; // VDP1 Version 1
-   //Vdp1Regs->TVMR = 0; // undefined when reset
-   //Vdp1Regs->EWDR = 0; // undefined when reset
-   //Vdp1Regs->EWLR = 0; // undefined when reset
-   //Vdp1Regs->EWRR = 0; // undefined when reset
+   Vdp1Regs->TVMR = 0;
+   // Clear erase registers on reset to prevent stale partial-erase
+   // coordinates from persisting across scene transitions (e.g. the
+   // garbled stage-clear screen in Langrisser 3).  On real hardware the
+   // reset values are "undefined", but leaving stale values causes the
+   // erase scissor rectangle to retain the previous scene's partial area,
+   // so only a small region is cleared each frame while the rest of the
+   // framebuffer shows residual pixels (花屏).
+   Vdp1Regs->EWDR = 0;
+   Vdp1Regs->EWLR = 0;
+   Vdp1Regs->EWRR = 0;
    Vdp1Regs->ENDR = 0;
    VIDCore->Vdp1Reset();
 
