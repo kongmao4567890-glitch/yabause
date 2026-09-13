@@ -34,6 +34,9 @@ jobs:
       - name: Test RGB sprite priority and transparency
         run: python3 yabause/src/tests/test_vdp1_rgb_metadata.py
 
+      - name: Test bank sprite transparency
+        run: python3 yabause/src/tests/test_vdp1_bank_metadata.py
+
       - name: Restore and check fixed APK signing key
         if: github.event_name != 'pull_request'
         env:

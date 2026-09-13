@@ -617,6 +617,8 @@ static void FASTCALL Vdp1ReadTexture(vdp1cmd_struct *cmd, YglSprite *sprite, Ygl
 
   addcolor = ((fixVdp2Regs->CCCTL & 0x540) == 0x140);
 
+  // Preserve the bank CC bits before priority extraction masks CMDCOLR.
+  const u16 colorBankReg = cmd->CMDCOLR;
   Vdp1ReadPriority(cmd, &priority, &colorcl, &nromal_shadow);
 
   // VDP2 manual 9.2: RGB pixels always select priority and CC ratio
@@ -888,7 +890,7 @@ static void FASTCALL Vdp1ReadTexture(vdp1cmd_struct *cmd, YglSprite *sprite, Ygl
         } else if ((dot | colorBank) == nromal_shadow) {
           *texture->textdata++ = VDP1COLOR(1, 0, priority, 1, sprite_window, 0);
         } else {
-          const int colorindex = (dot | colorBank);
+          u16 colorindex = (dot | (colorBankReg & 0xFF00));
           if ((colorindex & 0x8000) && (fixVdp2Regs->SPCTL & 0x20)) {
             *texture->textdata++ = VDP1COLOR(0, colorcl, priority, 0, 0, VDP1COLOR16TO24(colorindex));
           } else {
