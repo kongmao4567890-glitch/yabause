@@ -371,7 +371,12 @@
     <string name="show_fps">显示 FPS</string>
     <string name="enable_frame_skip">启用跳帧</string>
     <string name="frameLimit">速度限制</string>
-    <string name="chooseFrameLimit">选择帧率限制模式</string>
+    <string name="chooseFrameLimit">调整速度限制</string>
+    <string name="speed_limit_percent">%1$d%%</string>
+    <string name="speed_limit_help" formatted="false">拖动滑块或输入百分比（1–2000%），100% 为正常速度。实际速度取决于设备性能。</string>
+    <string name="speed_limit_range">请输入 1 到 2000 之间的整数。</string>
+    <string name="speed_limit_unlimited">不限速</string>
+    <string name="speed_limit_reset" formatted="false">恢复 100%</string>
     <string name="frameLimitNormal">正常</string>
     <string name="frameLimitDouble">双倍 (2x)</string>
     <string name="frameLimit2_5x">2.5倍</string>

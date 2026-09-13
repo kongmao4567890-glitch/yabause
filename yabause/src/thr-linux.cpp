@@ -449,8 +449,9 @@ int YabCopyFile( const char * src, const char * dst) {
 
 int YabNanosleep(u64 ns) {
   struct timespec ts;
-  ts.tv_sec = 0;
-  ts.tv_nsec = ns*1000;   
+  // The caller supplies microseconds. Slow speed limits can sleep over a second.
+  ts.tv_sec = ns / 1000000;
+  ts.tv_nsec = (ns % 1000000) * 1000;
   nanosleep(&ts,NULL);
   return 0;
 }
@@ -458,4 +459,3 @@ int YabNanosleep(u64 ns) {
 } // extern "C"
 
 //////////////////////////////////////////////////////////////////////////////
-

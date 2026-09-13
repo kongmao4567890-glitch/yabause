@@ -130,13 +130,10 @@
             android:title="@string/frameskip"
             android:defaultValue="true" />
 
-        <ListPreference
+        <org.uoyabause.android.SpeedLimitPreference
             android:key="pref_frameLimit"
             android:title="@string/frameLimit"
-            android:dialogTitle="@string/chooseFrameLimit"
-            android:entries="@array/entriesFrameLimit"
-            android:entryValues="@array/entryValuesFrameLimit"
-            android:defaultValue="0" />
+            android:dialogTitle="@string/chooseFrameLimit" />
 
         <CheckBoxPreference
             android:key="pref_landscape"

@@ -1497,12 +1497,12 @@ class Yabause : AppCompatActivity(),
                             )?.toInt()!!
                         YabauseRunnable.setRbgResolutionMode(rbg_resolution_setting!!)
 
-                        val frameLimitMode: Int? =
+                        YabauseRunnable.setFrameLimitMode(SpeedLimitValue.nativeMode(
                             gamePreference.getString(
                                 "pref_frameLimit",
                                 sharedPref.getString("pref_frameLimit", "0")
-                            )?.toInt()!!
-                        YabauseRunnable.setFrameLimitMode(frameLimitMode!!)
+                            )
+                        ))
 
                         YabauseRunnable.unlockGL()
 
@@ -2265,11 +2265,12 @@ class Yabause : AppCompatActivity(),
         )?.toInt()
         YabauseRunnable.setRbgResolutionMode(rbg_resolution_setting!!)
 
-        val frameLimitMode: Int? = gamePreference.getString(
-            "pref_frameLimit",
-            sharedPref.getString("pref_frameLimit", "0")
-        )?.toInt()!!
-        YabauseRunnable.setFrameLimitMode(frameLimitMode!!)
+        YabauseRunnable.setFrameLimitMode(SpeedLimitValue.nativeMode(
+            gamePreference.getString(
+                "pref_frameLimit",
+                sharedPref.getString("pref_frameLimit", "0")
+            )
+        ))
 
         // -------------------------------------------------------------------------------------
         // Load common setting (sharedPref was acquired above, before per-game overrides)

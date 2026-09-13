@@ -16,13 +16,10 @@
         app:defaultValue="true"/>
 
 
-    <ListPreference
+    <org.uoyabause.android.SpeedLimitPreference
         app:key="pref_frameLimit"
         app:title="@string/frameLimit"
-        app:dialogTitle="@string/chooseFrameLimit"
-        app:entries="@array/entriesFrameLimit"
-        app:entryValues="@array/entryValuesFrameLimit"
-        app:defaultValue="0" />
+        app:dialogTitle="@string/chooseFrameLimit" />
 
     <CheckBoxPreference
         app:key="pref_rotate_screen"

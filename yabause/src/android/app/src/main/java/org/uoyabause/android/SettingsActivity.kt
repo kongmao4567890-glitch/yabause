@@ -592,10 +592,6 @@ class SettingsActivity : AppCompatActivity() {
                 it.inputType = InputType.TYPE_CLASS_NUMBER
             }
 
-            val frameLimitSetting =
-                preferenceManager.findPreference("pref_frameLimit") as ListPreference?
-            frameLimitSetting!!.summary = frameLimitSetting.entry
-
             // Set up account preferences
             try {
                 setupAccountPreferences()
@@ -608,7 +604,9 @@ class SettingsActivity : AppCompatActivity() {
 
         override fun onDisplayPreferenceDialog(preference: Preference) {
             val f: DialogFragment?
-            if (preference is InputSettingPreference) {
+            if (preference is SpeedLimitPreference) {
+                f = SpeedLimitDialogFragment.newInstance(preference.key)
+            } else if (preference is InputSettingPreference) {
                 f = InputSettingPreferenceFragment.newInstance(preference.getKey())
             } else if (preference is GameDirectoriesDialogPreference) {
 
@@ -693,7 +691,7 @@ class SettingsActivity : AppCompatActivity() {
             if (key == "pref_bios" || key == "scsp_time_sync_mode" || key == "pref_cart" || key == "pref_video" ||
                 key == "pref_cpu" || key == "pref_filter" || key == "pref_polygon_generation" ||
                 key == "pref_sound_engine" || key == "pref_resolution" || key == "pref_rbg_resolution" ||
-                key == "pref_cpu_sync_per_line" || key == "pref_aspect_rate" || key == "pref_frameLimit" || key == "pref_install_location"
+                key == "pref_cpu_sync_per_line" || key == "pref_aspect_rate" || key == "pref_install_location"
             ) {
                 val pref = findPreference(key) as ListPreference?
                 pref!!.summary = pref.entry

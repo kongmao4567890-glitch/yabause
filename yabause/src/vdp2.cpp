@@ -44,6 +44,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 
 #include <stdlib.h>
 #include "vdp2.h"
+#include "frame_limit.h"
 #include "debug.h"
 #include "peripheral.h"
 #include "scu.h"
@@ -113,7 +114,7 @@ static s64 diffticks = 0;
 static u32 framecount = 0;
 static s64 onesecondticks = 0;
 static int enableFrameLimit = 1;
-static int frameLimitMultiplier = 10; // 10 = 1x, 20 = 2x, 25 = 2.5x, 30 = 3x, etc.
+static int frameLimitPercent = 100;
 
 //#define LOG yprintf
 #define PROFILE_RENDERING 0
@@ -714,164 +715,39 @@ void VDP2genVRamCyclePattern() {
   }
 }
 
-// 0=1x, 1=Unlimited, 2=2x, 3=2.5x, 4=3x, 5=3.5x, 6=4x, 7=4.5x, 8=5x, 9=5.5x, 10=6x, 11=6.5x, 12=7x, 13=7.5x, 14=8x
 void VDP2SetFrameLimit(int mode) {
-  switch (mode) {
-  case 0:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 10; // 1x = 60Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 1:
-    // Unlimited: use very high multiplier to skip almost all frames
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 200; // 20x = effectively unlimited
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 2:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 20; // 2x = 120Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 3:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 25; // 2.5x = 150Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 4:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 30; // 3x = 180Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 5:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 35; // 3.5x = 210Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 6:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 40; // 4x = 240Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 7:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 45; // 4.5x = 270Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 8:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 50; // 5x = 300Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 9:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 55; // 5.5x = 330Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 10:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 60; // 6x = 360Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 11:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 65; // 6.5x = 390Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 12:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 70; // 7x = 420Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 13:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 75; // 7.5x = 450Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 14:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 80; // 8x = 480Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 15:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 100; // 10x = 600Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  case 16:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 200; // 20x = 1200Hz
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  default:
-    enableFrameLimit = 1;
-    frameLimitMultiplier = 10;
-    framecount = 0;
-    onesecondticks = 0;
-    lastticks = YabauseGetTicks();
-    break;
-  }
-  VideoSetSetting(VDP_SETTING_FRAMELIMIT_MODE, mode);
+  frameLimitPercent = FrameLimitPercentForMode(mode);
+  enableFrameLimit = frameLimitPercent != 0;
+  framecount = 0;
+  onesecondticks = 0;
+  lastticks = YabauseGetTicks();
+  // Discard pending skips when changing speed, including returning to normal.
+  skipnextframe = 0;
+  framestoskip = 0;
+  // The renderer only needs to distinguish normal vs. non-normal presentation.
+  VideoSetSetting(VDP_SETTING_FRAMELIMIT_MODE, frameLimitPercent == 100 ? 0 : 1);
 }
 
 void frameSkipAndLimit() {
   if (FrameAdvanceVariable == 0 && enableFrameLimit )
   {
-    // Use multiplier-based calculation: fps = baseFps * multiplier / 10
-    // OneFrameTime adjusted = OneFrameTime * 10 / multiplier
+    // Keep a fixed batch of emulated frames; its real duration scales with
+    // the requested percentage. Never round the target frame rate to an integer.
     const u32 baseFps = (yabsys.IsPal ? 50 : 60);
-    const u32 fps = baseFps * frameLimitMultiplier / 10;
-    const u64 adjustedFrameTime = yabsys.OneFrameTime * 10 / frameLimitMultiplier;
+    const s64 adjustedFrameTime = FrameLimitTargetTicks(yabsys.tickfreq, baseFps, frameLimitPercent, 1);
+    const s64 batchTime = FrameLimitTargetTicks(yabsys.tickfreq, baseFps, frameLimitPercent, baseFps);
     framecount++;
     curticks = YabauseGetTicks();
-    if (framecount > fps)
+    if (framecount > baseFps)
     {
-      onesecondticks -= yabsys.tickfreq;
+      onesecondticks -= batchTime;
       if (onesecondticks > (s64)(adjustedFrameTime * 4)) {
         onesecondticks = 0;
       }
       framecount = 1;
-      lastticks = (curticks - adjustedFrameTime);
     }
 
-    u64 targetTime = (adjustedFrameTime * (u64)framecount);
-    if (framecount == fps) {
-      targetTime = yabsys.tickfreq; // 1sec
-    }
+    s64 targetTime = FrameLimitTargetTicks(yabsys.tickfreq, baseFps, frameLimitPercent, framecount);
 
     diffticks = curticks - lastticks;
 
@@ -883,7 +759,7 @@ void frameSkipAndLimit() {
     // buffer never gets composited = black screen.
     // Speed is barely affected: CPU still runs at target speed, just renders
     // 1 extra frame per cycle (e.g. 7x: skip 4 render 1 instead of skip 6 render 1)
-    int framesToSkip = (frameLimitMultiplier / 10) - 1;
+    int framesToSkip = (frameLimitPercent / 100) - 1;
     if (framesToSkip < 1) framesToSkip = 1;
     if (framesToSkip > 4) framesToSkip = 4;
 
@@ -899,16 +775,13 @@ void frameSkipAndLimit() {
       // Not skipping, running within target
     }
 
-    // Scale the wait threshold proportionally to frame time
-    // (was fixed at 1000 which is too large for small frame times at high speed)
-    u64 waitThreshold = adjustedFrameTime / 10;
-    if (waitThreshold < 100) waitThreshold = 100;
+    // Keep signed arithmetic: the batch remainder can be slightly negative.
+    const s64 waitThreshold = adjustedFrameTime / 10;
     targetTime -= waitThreshold;
     if ( (onesecondticks + diffticks) < targetTime )
     {
 
       s64 sleeptime = (targetTime - (onesecondticks + diffticks));
-      s64 xcurticks = YabauseGetTicks();
       if (sleeptime-1000 > 0) {
         YabNanosleep(sleeptime-1000);
       }
@@ -920,8 +793,6 @@ void frameSkipAndLimit() {
         if ((onesecondticks + diffticks) >= targetTime)
           break;
       }
-      //u64 realstime = YabauseGetTicks() - xcurticks;
-      //yprintf("req time %d,real time %d diff = %d", (u32)sleeptime, (u32)realstime, realstime-sleeptime);
     }
 
     onesecondticks += diffticks;

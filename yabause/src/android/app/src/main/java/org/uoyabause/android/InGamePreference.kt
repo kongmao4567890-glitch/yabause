@@ -13,6 +13,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.preference.CheckBoxPreference
 import androidx.preference.ListPreference
+import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
 import io.reactivex.Observable
@@ -66,14 +67,12 @@ fun setupInGamePreferences(context: Context, gameCode: String?) {
         editor.apply()
     }
 
-    if (!gamePreference.contains("pref_frameLimit")) {
-        val editor = gamePreference.edit()
-        editor.putString(
-            "pref_frameLimit",
-            defaultPreference.getString("pref_frameLimit", "0")
-        )
-        editor.apply()
-    }
+    // Show the effective runtime value, including global changes when no game override exists.
+    val runtimePreference = context.getHarmonySharedPreferences(gameCode)
+    gamePreference.edit().putString(
+        "pref_frameLimit",
+        runtimePreference.getString("pref_frameLimit", defaultPreference.getString("pref_frameLimit", "0"))
+    ).apply()
 
     if (!gamePreference.contains("pref_resolution")) {
         val editor = gamePreference.edit()
@@ -167,12 +166,24 @@ class InGamePreference(val gamecode: String) : PreferenceFragmentCompat(), Share
         showSummary(findPreference<ListPreference?>("pref_resolution")!!)
         showSummary(findPreference<ListPreference?>("pref_rbg_resolution")!!)
         showSummary(findPreference<ListPreference?>("pref_aspect_rate")!!)
-        showSummary(findPreference<ListPreference?>("pref_frameLimit")!!)
     }
 
     override fun onAttach(context: Context) {
         this.activityContext = context
         super.onAttach(context)
+    }
+
+    override fun onDisplayPreferenceDialog(preference: Preference) {
+        if (preference is SpeedLimitPreference) {
+            val tag = "SpeedLimitDialog"
+            if (parentFragmentManager.findFragmentByTag(tag) == null) {
+                SpeedLimitDialogFragment.newInstance(preference.key).apply {
+                    setTargetFragment(this@InGamePreference, 0)
+                }.show(parentFragmentManager, tag)
+            }
+        } else {
+            super.onDisplayPreferenceDialog(preference)
+        }
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {

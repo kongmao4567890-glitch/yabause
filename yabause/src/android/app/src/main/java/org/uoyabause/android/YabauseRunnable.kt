@@ -155,6 +155,7 @@ class YabauseRunnable(yabause: Yabause?) : Runnable {
         @JvmStatic
         external fun enableBackupWriteHook(): Int
         @JvmStatic
+        // Legacy enum for nonnegative values; negative values carry a speed percentage.
         external fun setFrameLimitMode(mode: Int)
         const val IDLE = -1
         const val RECORDING = 0

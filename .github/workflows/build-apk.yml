@@ -25,6 +25,9 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Test percentage speed limiter
+        run: python3 yabause/src/tests/test_frame_limit.py
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:
