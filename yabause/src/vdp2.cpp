@@ -1230,7 +1230,7 @@ void vdp2VBlankOUT(void) {
 
   if (pre_swap_frame_buffer == 0 && skipnextframe && Vdp1External.swap_frame_buffer ){
     // At high speed (4x+), allow skipping even during VDP1 swap
-    if (frameLimitMultiplier < 40) {
+    if (frameLimitPercent > 0 && frameLimitPercent < 400) {
       skipnextframe = 0;
       previous_skipped = 0;
       framestoskip = 1;
@@ -1239,7 +1239,7 @@ void vdp2VBlankOUT(void) {
 
   // At high speed (4x+), allow consecutive frame skips
   if (previous_skipped != 0 && skipnextframe != 0) {
-    if (frameLimitMultiplier < 40) {
+    if (frameLimitPercent > 0 && frameLimitPercent < 400) {
       skipnextframe = 0;
       previous_skipped = 0;
       framestoskip = 1;
