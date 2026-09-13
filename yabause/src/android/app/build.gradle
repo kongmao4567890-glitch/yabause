@@ -27,12 +27,39 @@ plugins {
 }
 
 
+// Distributed debug APKs must reuse the owner's signing key. Local IDE builds
+// may still use the normal debug key; CI explicitly requires stable signing.
+def stableSigningNames = ['ANDROID_KEYSTORE_PATH', 'ANDROID_KEYSTORE_PASSWORD',
+                          'ANDROID_KEY_ALIAS', 'ANDROID_KEY_PASSWORD']
+def stableSigning = stableSigningNames.collectEntries { [(it): System.getenv(it)] }
+def hasStableSigning = stableSigning.values().any { it }
+if ((hasStableSigning || System.getenv('REQUIRE_STABLE_SIGNING') == 'true') &&
+        !stableSigning.values().every { it }) {
+    throw new GradleException('Stable APK signing is incomplete. See docs/android-signing.md.')
+}
+if (hasStableSigning && !file(stableSigning.ANDROID_KEYSTORE_PATH).isFile()) {
+    throw new GradleException('The configured Android signing keystore does not exist.')
+}
+def ciVersionCode = System.getenv('ANDROID_VERSION_CODE')
+if (ciVersionCode != null && (!ciVersionCode.isInteger() ||
+        ciVersionCode.toInteger() <= 222 || ciVersionCode.toInteger() > 2100000000)) {
+    throw new GradleException('ANDROID_VERSION_CODE must be an integer between 223 and 2100000000.')
+}
+
 android {
     testOptions {
         unitTests.returnDefaultValues = true
     }
     namespace "org.devmiyax.yabasanshiro"
     signingConfigs {
+        debug {
+            if (hasStableSigning) {
+                storeFile file(stableSigning.ANDROID_KEYSTORE_PATH)
+                storePassword stableSigning.ANDROID_KEYSTORE_PASSWORD
+                keyAlias stableSigning.ANDROID_KEY_ALIAS
+                keyPassword stableSigning.ANDROID_KEY_PASSWORD
+            }
+        }
         pro {
             if( System.getenv('KEY_FILE_NAME') == null ){
                 storeFile file("dmy")
@@ -84,7 +111,7 @@ android {
         minSdkVersion 24
         targetSdkVersion 34
         multiDexEnabled true
-        versionCode 222
+        versionCode ciVersionCode == null ? 222 : ciVersionCode.toInteger()
         versionName '1.17.7'
         multiDexEnabled true
         vectorDrawables.useSupportLibrary = true

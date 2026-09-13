@@ -7,6 +7,9 @@ on:
     branches: [ master, main ]
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -24,6 +27,19 @@ jobs:
         with:
           java-version: '17'
           distribution: 'temurin'
+
+      - name: Test signing key restoration
+        run: python3 .github/scripts/test_android_signing.py
+
+      - name: Restore and check fixed APK signing key
+        if: github.event_name != 'pull_request'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
+        run: python3 .github/scripts/android_signing.py prepare
 
       - name: Test percentage speed limiter
         run: python3 yabause/src/tests/test_frame_limit.py
@@ -53,17 +69,41 @@ jobs:
         working-directory: yabause/src/android
         run: chmod +x gradlew
 
-      - name: Build Debug APK
+      - name: Compile pull request (not distributed)
+        if: github.event_name == 'pull_request'
         working-directory: yabause/src/android
         run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
+      - name: Build APK with fixed signing key
+        if: github.event_name != 'pull_request'
+        working-directory: yabause/src/android
+        env:
+          REQUIRE_STABLE_SIGNING: 'true'
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Verify APK identity and write checksums
+        if: github.event_name != 'pull_request'
+        env:
+          ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
+        run: python3 .github/scripts/android_signing.py verify
+
       - name: Upload APK
+        if: github.event_name != 'pull_request'
         uses: actions/upload-artifact@v4
         with:
           name: yaba-sanshiro-debug-apk
           path: |
             yabause/src/android/app/build/outputs/apk/debug/*.apk
+            yabause/src/android/app/build/outputs/apk/debug/apk-info.txt
+          if-no-files-found: error
           retention-days: 30
+
+      - name: Remove temporary signing key
+        if: always()
+        run: rm -rf "${RUNNER_TEMP}/yabause-signing"
 
       - name: Upload Build Logs on Failure
         if: failure()

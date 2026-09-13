@@ -25,3 +25,9 @@ yabause/src/ios/uoyabause/uoyabause/GoogleService-Info-lite.plist
 bin*/*
 yabause/src/qt/firebase_cpp_sdk*/*
 **/._.DS_Store/*
+
+# Signing keys belong in private backups and GitHub Actions Secrets.
+*.jks
+*.keystore
+*.p12
+*.pfx
