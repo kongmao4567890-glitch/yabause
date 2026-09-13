@@ -12,6 +12,28 @@ import sys
 import tempfile
 
 
+def load_bundle():
+    """Optionally read the five signing fields from ONE private Actions secret."""
+    raw = os.environ.get("ANDROID_SIGNING_BUNDLE")
+    if not raw:
+        return
+    names = {"ANDROID_KEYSTORE_BASE64", "ANDROID_KEYSTORE_PASSWORD",
+             "ANDROID_KEY_ALIAS", "ANDROID_KEY_PASSWORD", "ANDROID_SIGNING_CERT_SHA256"}
+    try:
+        values = json.loads(raw)
+    except json.JSONDecodeError:
+        raise ValueError("ANDROID_SIGNING_BUNDLE must be valid JSON.") from None
+    if not isinstance(values, dict) or set(values) != names or not all(
+            isinstance(value, str) and value for value in values.values()):
+        raise ValueError("ANDROID_SIGNING_BUNDLE must contain all five signing fields.")
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        # GitHub knows the entire JSON secret; also mask its individual fields.
+        for value in values.values():
+            escaped = value.replace("%", "%25").replace("\r", "%0D").replace("\n", "%0A")
+            print("::add-mask::" + escaped, flush=True)
+    os.environ.update(values)
+
+
 def required(name):
     value = os.environ.get(name)
     if not value:
@@ -27,6 +49,7 @@ def fingerprint(value):
 
 
 def prepare():
+    load_bundle()
     # Check everything before writing any key material. Never generate a key in CI.
     encoded = required("ANDROID_KEYSTORE_BASE64")
     for name in ("ANDROID_KEYSTORE_PASSWORD", "ANDROID_KEY_ALIAS", "ANDROID_KEY_PASSWORD"):
@@ -61,7 +84,17 @@ def prepare():
         raise
 
 
+def build():
+    load_bundle()
+    for name in ("ANDROID_KEYSTORE_PATH", "ANDROID_KEYSTORE_PASSWORD",
+                 "ANDROID_KEY_ALIAS", "ANDROID_KEY_PASSWORD"):
+        required(name)
+    os.environ["REQUIRE_STABLE_SIGNING"] = "true"
+    subprocess.run(["./gradlew", ":app:assembleDebug", "--no-daemon", "--stacktrace"], check=True)
+
+
 def verify():
+    load_bundle()
     expected = fingerprint(required("ANDROID_SIGNING_CERT_SHA256"))
     output = Path("yabause/src/android/app/build/outputs/apk/debug")
     metadata = json.loads((output / "output-metadata.json").read_text())
@@ -94,10 +127,10 @@ def verify():
 
 if __name__ == "__main__":
     try:
-        {"prepare": prepare, "verify": verify}[sys.argv[1]]()
+        {"prepare": prepare, "build": build, "verify": verify}[sys.argv[1]]()
     except subprocess.CalledProcessError:
         # Tool diagnostics can contain aliases and paths: do not copy them into CI logs.
-        print("::error::Signing tool failed. Check the keystore, passwords and APK signature.", file=sys.stderr)
+        print("::error::Android signing or build command failed. Check the configuration and build log.", file=sys.stderr)
         sys.exit(1)
     except (ValueError, KeyError, IndexError, OSError) as error:
         print(f"::error::{error}", file=sys.stderr)

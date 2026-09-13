@@ -3,6 +3,7 @@
 
 import base64
 import hashlib
+import json
 import os
 from pathlib import Path
 import subprocess
@@ -40,6 +41,7 @@ class SigningTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as directory:
             envfile = Path(directory) / "github-env"
             env = dict(os.environ, **self.secrets)
+            env.update(ANDROID_SIGNING_BUNDLE="", GITHUB_ACTIONS="false")
             env.update(RUNNER_TEMP=directory, GITHUB_ENV=str(envfile), GITHUB_RUN_NUMBER="103")
             env.update(changes)
             result = subprocess.run(["python3", str(SCRIPT), "prepare"], env=env,
@@ -76,6 +78,16 @@ class SigningTest(unittest.TestCase):
         ):
             with self.subTest(fields=list(changes)):
                 self.restore(changes, False)
+
+    def test_single_private_bundle(self):
+        changes = {name: "" for name in self.secrets}
+        changes["ANDROID_SIGNING_BUNDLE"] = json.dumps(self.secrets)
+        self.restore(changes, True)
+
+    def test_rejects_invalid_bundle_without_fallback(self):
+        for bundle in ("not-json", "[]", "{}", json.dumps({"unexpected": "value"})):
+            with self.subTest(bundle=bundle):
+                self.restore({"ANDROID_SIGNING_BUNDLE": bundle}, False)
 
 
 if __name__ == "__main__":

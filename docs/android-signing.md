@@ -18,6 +18,16 @@ Android 要求更新包使用原来的签名身份。以前的工作流在临时
 
 ## 一次性配置
 
+推荐只配置一个 **Repository secret**：`ANDROID_SIGNING_BUNDLE`，内容为含以下五个
+字段的 JSON 对象。所有密钥和密码都留在 GitHub Secrets，不要将 JSON 提交到仓库。
+如果已生成 `ANDROID_SIGNING_BUNDLE.txt`，将它的完整内容复制到该 Secret 即可。
+
+配置后在 Actions → Build Android APK → Run workflow 启动构建。
+工作流会为 Gradle 注入签名参数，并屏蔽 JSON 内各个字段的日志输出。
+配置了 bundle 时优先使用 bundle；格式不完整会报错，不会退回旧签名。
+
+也可以保持原来的五项独立配置：
+
 在仓库 Settings → Secrets and variables → Actions 中配置以下 **Repository secrets**：
 
 | Secret | 内容 |
