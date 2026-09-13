@@ -28,6 +28,12 @@ jobs:
       - name: Test percentage speed limiter
         run: python3 yabause/src/tests/test_frame_limit.py
 
+      - name: Test OpenGL display filters
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libegl1 libgl1 libgl1-mesa-dri python3-numpy python3-pil
+          /usr/bin/python3 yabause/src/tests/test_display_filters.py
+
       - name: Set up Android SDK
         uses: android-actions/setup-android@v3
         with:

@@ -497,6 +497,7 @@ class SettingsActivity : AppCompatActivity() {
                 preferenceManager.findPreference("pref_filter") as ListPreference?
             filter_setting!!.summary = filter_setting.entry
             filter_setting.isEnabled = video_cart.value == "1"
+            if (!filter_setting.isEnabled) filter_setting.setSummary(R.string.video_filter_opengl_only)
 
             /* scsp */
             val scsp_setting =
@@ -699,6 +700,8 @@ class SettingsActivity : AppCompatActivity() {
                     val filter_setting =
                         preferenceManager.findPreference("pref_filter") as ListPreference?
                     filter_setting!!.isEnabled = pref.value == "1"
+                    filter_setting.summary = if (filter_setting.isEnabled) filter_setting.entry
+                        else getString(R.string.video_filter_opengl_only)
                     val polygon_setting =
                         preferenceManager.findPreference("pref_polygon_generation") as ListPreference?
                     polygon_setting!!.summary = polygon_setting.entry

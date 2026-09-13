@@ -1443,6 +1443,9 @@ class Yabause : AppCompatActivity(),
                         // set, fall back to the global setting so global changes apply per-game.
                         val gamePreference = getHarmonySharedPreferences(safeGameCode)
                         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this@Yabause)
+                        YabauseRunnable.setFilter(gamePreference.getString(
+                            "pref_filter", sharedPref.getString("pref_filter", "0")
+                        )?.toIntOrNull()?.coerceIn(0, 8) ?: 0)
                         YabauseRunnable.enableRotateScreen(
                             if (gamePreference.getBoolean(
                                     "pref_rotate_screen",
@@ -2293,8 +2296,10 @@ class Yabause : AppCompatActivity(),
         val sh2Cache = sharedPref.getBoolean("pref_use_sh2_cache", true)
         YabauseRunnable.setUseSh2Cache(if (sh2Cache) 1 else 0)
 
-        val ifilter: Int? = sharedPref.getString("pref_filter", "0")?.toInt()
-        YabauseRunnable.setFilter(ifilter!!)
+        val ifilter = gamePreference.getString(
+            "pref_filter", sharedPref.getString("pref_filter", "0")
+        )?.toIntOrNull()?.coerceIn(0, 8) ?: 0
+        YabauseRunnable.setFilter(ifilter)
         Log.d(TAG, "setFilter $ifilter")
         val audioout = sharedPref.getBoolean("pref_audio", true)
         if (audioout) {

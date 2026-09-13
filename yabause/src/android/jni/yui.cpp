@@ -2041,7 +2041,8 @@ extern "C"
     void
     Java_org_uoyabause_android_YabauseRunnable_setFilter(JNIEnv *env, jobject obj, jint filter)
     {
-        g_VideoFilter = filter;
+        g_VideoFilter = (filter >= 0 && filter <= 8) ? filter : 0;
+        VideoSetSetting(VDP_SETTING_FILTERMODE, g_VideoFilter);
     }
 
     void

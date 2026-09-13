@@ -97,6 +97,12 @@
 
     <string name="video_filter_none">None</string>
     <string name="video_filter_fxaa">FXAA</string>
+    <string name="video_filter_crt_lottes">CRT-Lottes (bloom)</string>
+    <string name="video_filter_crt_lottes_lite">CRT-Lottes (lightweight)</string>
+    <string name="video_filter_lcd">LCD pixel grid</string>
+    <string name="video_filter_sharp_bilinear">Sharp bilinear (pixel art)</string>
+    <string name="video_filter_sharpen">Sharpen</string>
+    <string name="video_filter_opengl_only">Select OpenGL to use filters</string>
     <string name="video_filter_scanline">Scanline</string>
     <string name="video_filter_bilinear">Bilinear(Enables only when Native resolution is not selected)</string>
     <string name="browse_title"><![CDATA[Videos by Your Company]]></string>

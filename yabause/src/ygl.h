@@ -514,6 +514,11 @@ typedef enum
   AA_FXAA,
   AA_SCANLINE_FILTER,
   AA_BILNEAR_FILTER,
+  AA_CRT_LOTTES,
+  AA_CRT_LOTTES_LITE,
+  AA_LCD_GRID,
+  AA_SHARP_BILINEAR,
+  AA_SHARPEN,
 } AAMODE;
 
 typedef enum
@@ -768,6 +773,9 @@ int YglExpandVertexBuffer( int addsize, void ** vpos, void **tcpos, void **vapos
 intptr_t YglGetOffset( void* address );
 int YglBlitFramebuffer(u32 srcTexture, u32 targetFbo, float w, float h);
 int YglBlitFXAA(u32 sourceTexture, float w, float h);
+int YglBlitDisplayFilter(u32 sourceTexture, int mode, int outputWidth, int outputHeight);
+void YglResetDisplayFilters(void);
+void YglDeleteDisplayFilters(void);
 int YglWindowFramebuffer(u32 srcTexture, u32 targetFbo, float w, float h, float ww, float hh);
 
 void YglRenderVDP1(void);

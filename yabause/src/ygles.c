@@ -1343,6 +1343,9 @@ int YglGenFrameBuffer() {
 
 //////////////////////////////////////////////////////////////////////////////
 int YglIsNeedFrameBuffer() {
+  if (_Ygl->aamode >= AA_CRT_LOTTES && _Ygl->aamode <= AA_SHARPEN) {
+    return 1;
+  }
   if (_Ygl->aamode == AA_FXAA) {
     return 1;
   }
@@ -1585,6 +1588,8 @@ int YglInit(int width, int height, unsigned int depth) {
 //////////////////////////////////////////////////////////////////////////////
 void YglDeInit(void) {
    unsigned int i,j;
+
+   YglDeleteDisplayFilters();
 
    YglTMDeInit(YglTM);
 //   YglTMDeInit(YglTM_vdp1);
@@ -3828,7 +3833,8 @@ void YglRender(void) {
      glScissor(_Ygl->originx, _Ygl->originy, GlWidth, GlHeight);
    }
 
-   if (_Ygl->aamode == AA_FXAA) {
+   if (_Ygl->aamode == AA_FXAA ||
+       (_Ygl->aamode >= AA_CRT_LOTTES && _Ygl->aamode <= AA_SHARPEN)) {
      glViewport(0, 0, _Ygl->width, _Ygl->height);
      glScissor(0, 0, _Ygl->width, _Ygl->height);
    }
@@ -4042,6 +4048,20 @@ void YglRender(void) {
     glViewport(_Ygl->originx, _Ygl->originy, GlWidth, GlHeight);
     glScissor(_Ygl->originx, _Ygl->originy, GlWidth, GlHeight);
     YglBlitScanlineFilter(_Ygl->fxaa_fbotex, GlHeight, _Ygl->rheight);
+  }
+  else if (_Ygl->aamode >= AA_CRT_LOTTES && _Ygl->aamode <= AA_SHARPEN) {
+    glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
+    glDisable(GL_SCISSOR_TEST);
+    glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glEnable(GL_SCISSOR_TEST);
+    glViewport(_Ygl->originx, _Ygl->originy, GlWidth, GlHeight);
+    glScissor(_Ygl->originx, _Ygl->originy, GlWidth, GlHeight);
+    _Ygl->targetfbo = _Ygl->default_fbo;
+    if (YglBlitDisplayFilter(_Ygl->fxaa_fbotex, _Ygl->aamode, GlWidth, GlHeight) != 0) {
+      // Keep the game visible if a device rejects a shader.
+      YglBlitFramebuffer(_Ygl->fxaa_fbotex, _Ygl->default_fbo, GlWidth, GlHeight);
+    }
   }
   else if (_Ygl->resolution_mode != RES_NATIVE ) {
     glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);

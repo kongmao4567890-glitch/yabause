@@ -70,6 +70,10 @@ fun setupInGamePreferences(context: Context, gameCode: String?) {
     // Show the effective runtime value, including global changes when no game override exists.
     val runtimePreference = context.getHarmonySharedPreferences(gameCode)
     gamePreference.edit().putString(
+        "pref_filter",
+        runtimePreference.getString("pref_filter", defaultPreference.getString("pref_filter", "0"))
+    ).apply()
+    gamePreference.edit().putString(
         "pref_frameLimit",
         runtimePreference.getString("pref_frameLimit", defaultPreference.getString("pref_frameLimit", "0"))
     ).apply()
@@ -162,6 +166,11 @@ class InGamePreference(val gamecode: String) : PreferenceFragmentCompat(), Share
     }
 
     private fun setSummaries() {
+        val filter = findPreference<ListPreference>("pref_filter")!!
+        val defaults = PreferenceManager.getDefaultSharedPreferences(activityContext)
+        filter.isEnabled = defaults.getString("pref_video", "1") == "1"
+        if (filter.isEnabled) showSummary(filter)
+        else filter.setSummary(R.string.video_filter_opengl_only)
         showSummary(findPreference<ListPreference?>("pref_polygon_generation")!!)
         showSummary(findPreference<ListPreference?>("pref_resolution")!!)
         showSummary(findPreference<ListPreference?>("pref_rbg_resolution")!!)
@@ -251,6 +260,7 @@ class InGamePreference(val gamecode: String) : PreferenceFragmentCompat(), Share
         val gamePreference = requireContext().getHarmonySharedPreferences(gamecode)
         val editor = gamePreference.edit()
         when (key) {
+            "pref_filter" -> editor.putString("pref_filter", sharedPreferences.getString("pref_filter", "0"))
             "pref_fps" -> editor.putBoolean("pref_fps", sharedPreferences.getBoolean("pref_fps", false))
             "pref_frameskip" -> editor.putBoolean("pref_frameskip", sharedPreferences.getBoolean("pref_frameskip", false))
             "pref_rotate_screen" -> editor.putBoolean("pref_rotate_screen", sharedPreferences.getBoolean("pref_rotate_screen", false))

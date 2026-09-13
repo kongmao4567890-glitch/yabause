@@ -115,6 +115,12 @@
 
     <string name="video_filter_none">无</string>
     <string name="video_filter_fxaa">FXAA</string>
+    <string name="video_filter_crt_lottes">CRT-Lottes（乐天，带辉光）</string>
+    <string name="video_filter_crt_lottes_lite">CRT-Lottes（乐天，轻量版）</string>
+    <string name="video_filter_lcd">LCD 像素网格</string>
+    <string name="video_filter_sharp_bilinear">清晰双线性（像素风格）</string>
+    <string name="video_filter_sharpen">画面锐化</string>
+    <string name="video_filter_opengl_only">切换到 OpenGL 后可使用滤镜</string>
     <string name="video_filter_scanline">扫描线</string>
     <string name="video_filter_bilinear">双线性 (仅在未选择本机分辨率时启用)</string>
     <string name="browse_title"><![CDATA[Videos by Your Company]]></string>

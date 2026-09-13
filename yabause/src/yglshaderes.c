@@ -26,6 +26,7 @@ Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301  USA
 #include "yui.h"
 #include "vidshared.h"
 #include "shaders/FXAA_DefaultES.h"
+#include "shaders/DisplayFilters.h"
 
 #if defined(__LIBRETRO__)
 #define YGLLOG YuiMsg
@@ -3113,6 +3114,7 @@ int YglInitShader(int id, const GLchar * vertex[], const GLchar * frag[], int fc
 
 int YglProgramInit()
 {
+   YglResetDisplayFilters();
    YGLLOG("PG_NORMAL\n");
    //
    if (YglInitShader(PG_NORMAL, pYglprg_normal_v, pYglprg_normal_f, 1, NULL, NULL, NULL) != 0)
@@ -5135,3 +5137,134 @@ int YglBlitScanlineFilter(u32 sourceTexture, u32 draw_res_v, u32 staturn_res_v) 
   return 0;
 }
 
+
+/* Display post-processing is compiled lazily once per filter and GL context. */
+static GLuint display_programs[5] = {0};
+static int display_failed[5] = {0};
+static GLuint display_vao = 0;
+static GLint display_uniforms[5][5];
+
+void YglResetDisplayFilters(void) {
+  int i;
+  for (i = 0; i < 5; ++i) {
+    display_programs[i] = 0;
+    display_failed[i] = 0;
+  }
+  display_vao = 0;
+}
+
+void YglDeleteDisplayFilters(void) {
+  int i;
+  for (i = 0; i < 5; ++i)
+    if (display_programs[i]) glDeleteProgram(display_programs[i]);
+  if (display_vao) glDeleteVertexArrays(1, &display_vao);
+  YglResetDisplayFilters();
+}
+
+static GLuint YglCompileDisplayShader(GLenum type, int mode, const char *body) {
+#if defined(_OGLES3_)
+  const char *version = "#version 300 es\n";
+#else
+  const char *version = "#version 330\n";
+#endif
+  char option[48];
+  const GLchar *parts[3];
+  GLint compiled = GL_FALSE;
+  GLuint shader = glCreateShader(type);
+  if (!shader) return 0;
+  snprintf(option, sizeof(option), "#define FILTER_MODE %d\n", mode);
+  parts[0] = version;
+  parts[1] = option;
+  parts[2] = body;
+  glShaderSource(shader, 3, parts, NULL);
+  glCompileShader(shader);
+  glGetShaderiv(shader, GL_COMPILE_STATUS, &compiled);
+  if (!compiled) {
+    YGLLOG("Display filter %d: shader compilation failed\n", mode);
+    Ygl_printShaderError(0, shader);
+    glDeleteShader(shader);
+    return 0;
+  }
+  return shader;
+}
+
+int YglBlitDisplayFilter(u32 texture, int mode, int outputWidth, int outputHeight) {
+  GLuint program, vertex, fragment;
+  GLint linked = GL_FALSE, previousProgram, previousVao, previousTexture, previousActive;
+  GLboolean depth, blend, stencil;
+  int index = mode - AA_CRT_LOTTES;
+  int rotate, nativeWidth, nativeHeight;
+  if (index < 0 || index >= 5 || !_Ygl || outputWidth <= 0 || outputHeight <= 0) return -1;
+  if (display_failed[index]) return -1;
+  if (!display_programs[index]) {
+    vertex = YglCompileDisplayShader(GL_VERTEX_SHADER, mode, display_filter_vertex);
+    fragment = YglCompileDisplayShader(GL_FRAGMENT_SHADER, mode, display_filter_fragment);
+    if (!vertex || !fragment) {
+      if (vertex) glDeleteShader(vertex);
+      if (fragment) glDeleteShader(fragment);
+      display_failed[index] = 1;
+      return -1;
+    }
+    program = glCreateProgram();
+    if (program) {
+      glAttachShader(program, vertex);
+      glAttachShader(program, fragment);
+      glLinkProgram(program);
+      glGetProgramiv(program, GL_LINK_STATUS, &linked);
+    }
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+    if (!linked) {
+      if (program) {
+        Ygl_printShaderError(0, program);
+        glDeleteProgram(program);
+      }
+      display_failed[index] = 1;
+      return -1;
+    }
+    display_programs[index] = program;
+    display_uniforms[index][0] = glGetUniformLocation(program, "uSource");
+    display_uniforms[index][1] = glGetUniformLocation(program, "uTextureSize");
+    display_uniforms[index][2] = glGetUniformLocation(program, "uNativeSize");
+    display_uniforms[index][3] = glGetUniformLocation(program, "uOutputSize");
+    display_uniforms[index][4] = glGetUniformLocation(program, "uRotate");
+  }
+  if (!display_vao) glGenVertexArrays(1, &display_vao);
+  if (!display_vao) return -1;
+  program = display_programs[index];
+  rotate = _Ygl->rotate_screen && _Ygl->resolution_mode != RES_NATIVE;
+  nativeWidth = _Ygl->rwidth > 0 ? _Ygl->rwidth : 320;
+  nativeHeight = _Ygl->rheight > 0 ? _Ygl->rheight : 224;
+  glGetIntegerv(GL_CURRENT_PROGRAM, &previousProgram);
+  glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &previousVao);
+  glGetIntegerv(GL_ACTIVE_TEXTURE, &previousActive);
+  glActiveTexture(GL_TEXTURE0);
+  glGetIntegerv(GL_TEXTURE_BINDING_2D, &previousTexture);
+  depth = glIsEnabled(GL_DEPTH_TEST);
+  blend = glIsEnabled(GL_BLEND);
+  stencil = glIsEnabled(GL_STENCIL_TEST);
+  glDisable(GL_DEPTH_TEST);
+  glDisable(GL_BLEND);
+  glDisable(GL_STENCIL_TEST);
+  glUseProgram(program);
+  glBindVertexArray(display_vao);
+  glBindTexture(GL_TEXTURE_2D, texture);
+  glUniform1i(display_uniforms[index][0], 0);
+  glUniform2f(display_uniforms[index][1],
+      (float)(rotate ? _Ygl->height : _Ygl->width),
+      (float)(rotate ? _Ygl->width : _Ygl->height));
+  glUniform2f(display_uniforms[index][2],
+      (float)(_Ygl->rotate_screen ? nativeHeight : nativeWidth),
+      (float)(_Ygl->rotate_screen ? nativeWidth : nativeHeight));
+  glUniform2f(display_uniforms[index][3], (float)outputWidth, (float)outputHeight);
+  glUniform1i(display_uniforms[index][4], rotate);
+  glDrawArrays(GL_TRIANGLES, 0, 3);
+  glBindTexture(GL_TEXTURE_2D, previousTexture);
+  glActiveTexture(previousActive);
+  glBindVertexArray(previousVao);
+  glUseProgram(previousProgram);
+  if (depth) glEnable(GL_DEPTH_TEST);
+  if (blend) glEnable(GL_BLEND);
+  if (stencil) glEnable(GL_STENCIL_TEST);
+  return 0;
+}

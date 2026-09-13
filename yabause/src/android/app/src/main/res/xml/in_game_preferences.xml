@@ -27,6 +27,14 @@
         app:defaultValue="false" />
 
     <ListPreference
+        app:key="pref_filter"
+        app:title="@string/video_filter"
+        app:dialogTitle="@string/choose_video_filter"
+        app:entries="@array/entries_video_filte_list_preference"
+        app:entryValues="@array/entryvalues_video_filte_list_preference"
+        app:defaultValue="0" />
+
+    <ListPreference
         app:key="pref_polygon_generation"
         app:title="@string/polygon_generation_type"
         app:dialogTitle="@string/choose_polygon_generation_type"
