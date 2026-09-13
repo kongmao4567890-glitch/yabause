@@ -90,7 +90,11 @@ def build():
                  "ANDROID_KEY_ALIAS", "ANDROID_KEY_PASSWORD"):
         required(name)
     os.environ["REQUIRE_STABLE_SIGNING"] = "true"
-    subprocess.run(["./gradlew", ":app:assembleDebug", "--no-daemon", "--stacktrace"], check=True)
+    # Gradle evaluates signing while configuring unit tests too. Keep tests and
+    # packaging in the same process with the complete, masked signing bundle.
+    subprocess.run(["./gradlew", ":app:testDebugUnitTest", "--tests",
+                    "org.uoyabause.android.cheat.CheatCatalogTest",
+                    ":app:assembleDebug", "--no-daemon", "--stacktrace"], check=True)
 
 
 def verify():

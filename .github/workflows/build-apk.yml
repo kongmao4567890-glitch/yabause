@@ -79,14 +79,10 @@ jobs:
         working-directory: yabause/src/android
         run: chmod +x gradlew
 
-      - name: Test Android cheat search
-        working-directory: yabause/src/android
-        run: ./gradlew :app:testDebugUnitTest --tests org.uoyabause.android.cheat.CheatCatalogTest --no-daemon --stacktrace
-
       - name: Compile pull request (not distributed)
         if: github.event_name == 'pull_request'
         working-directory: yabause/src/android
-        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
+        run: ./gradlew :app:testDebugUnitTest --tests org.uoyabause.android.cheat.CheatCatalogTest :app:assembleDebug --no-daemon --stacktrace
 
       - name: Build APK with fixed signing key
         if: github.event_name != 'pull_request'
