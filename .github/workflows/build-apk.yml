@@ -37,7 +37,7 @@ jobs:
       - name: Restore and check fixed APK signing key
         if: github.event_name != 'pull_request'
         env:
-          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
+          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE || secrets.A }}
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -82,7 +82,7 @@ jobs:
         if: github.event_name != 'pull_request'
         working-directory: yabause/src/android
         env:
-          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
+          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE || secrets.A }}
           REQUIRE_STABLE_SIGNING: 'true'
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
@@ -92,7 +92,7 @@ jobs:
       - name: Verify APK identity and write checksums
         if: github.event_name != 'pull_request'
         env:
-          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE }}
+          ANDROID_SIGNING_BUNDLE: ${{ secrets.ANDROID_SIGNING_BUNDLE || secrets.A }}
           ANDROID_SIGNING_CERT_SHA256: ${{ secrets.ANDROID_SIGNING_CERT_SHA256 }}
         run: python3 .github/scripts/android_signing.py verify
 
