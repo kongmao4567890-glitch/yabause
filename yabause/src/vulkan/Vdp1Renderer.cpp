@@ -3292,6 +3292,10 @@ void Vdp1Renderer::readTexture(vdp1cmd_struct *cmd, YglSprite *sprite, CharTextu
 
   readPriority(cmd, &priority, &colorcl, &nromal_shadow);
 
+  // VDP2 manual 9.2: RGB pixels always select priority and CC ratio
+  // register 0. CMDCOLR and preceding palette texels must not supply
+  // these indices (Shining Force III changes ratios after magic).
+
   switch ((cmd->CMDPMOD >> 3) & 0x7) {
   case 0: {
     // 4 bpp Bank mode
@@ -3380,7 +3384,7 @@ void Vdp1Renderer::readTexture(vdp1cmd_struct *cmd, YglSprite *sprite, CharTextu
             *texture->textdata++ = VDP1COLOR(1, 0, priority, 1, 0, 0);
           } else if (colorindex != 0x0000) {
             if ((colorindex & 0x8000) && (fixVdp2Regs->SPCTL & 0x20)) {
-              *texture->textdata++ = VDP1COLOR(0, colorcl, 0, 0, 0, VDP1COLOR16TO24(colorindex));
+              *texture->textdata++ = VDP1COLOR(0, 0, 0, 0, 0, VDP1COLOR16TO24(colorindex));
             } else {
               temp = colorindex;
               Vdp1ProcessSpritePixel(fixVdp2Regs->SPCTL & 0xF, &temp, &shadow, &normalshadow, &priority, &colorcl);
@@ -3410,7 +3414,7 @@ void Vdp1Renderer::readTexture(vdp1cmd_struct *cmd, YglSprite *sprite, CharTextu
             *texture->textdata++ = VDP1COLOR(1, 0, priority, 1, 0, 0);
           } else if (colorindex != 0x0000) {
             if ((colorindex & 0x8000) && (fixVdp2Regs->SPCTL & 0x20)) {
-              *texture->textdata++ = VDP1COLOR(0, colorcl, 0, 0, 0,VDP1COLOR16TO24(colorindex));
+              *texture->textdata++ = VDP1COLOR(0, 0, 0, 0, 0, VDP1COLOR16TO24(colorindex));
             } else {
               temp = colorindex;
               Vdp1ProcessSpritePixel(fixVdp2Regs->SPCTL & 0xF, &temp, &shadow, &normalshadow, &priority, &colorcl);
@@ -3561,7 +3565,7 @@ void Vdp1Renderer::readTexture(vdp1cmd_struct *cmd, YglSprite *sprite, CharTextu
           *texture->textdata++ = VDP1COLOR(0, 1, priority, 1, 0, 0);
         } else {
           if (dot & 0x8000 && (fixVdp2Regs->SPCTL & 0x20)) {
-            *texture->textdata++ = VDP1COLOR(0, colorcl, priority, 0, 0, VDP1COLOR16TO24(dot));
+            *texture->textdata++ = VDP1COLOR(0, 0, 0, 0, 0, VDP1COLOR16TO24(dot));
           } else {
             // Vdp1MaskSpritePixel(fixVdp2Regs->SPCTL & 0xF, &dot, &colorcl); //ToDo
             *texture->textdata++ = VDP1COLOR(1, colorcl, priority, 0, 0, dot);

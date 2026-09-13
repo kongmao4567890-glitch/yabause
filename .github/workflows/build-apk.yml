@@ -31,6 +31,9 @@ jobs:
       - name: Test signing key restoration
         run: python3 .github/scripts/test_android_signing.py
 
+      - name: Test RGB sprite priority and transparency
+        run: python3 yabause/src/tests/test_vdp1_rgb_metadata.py
+
       - name: Restore and check fixed APK signing key
         if: github.event_name != 'pull_request'
         env:
