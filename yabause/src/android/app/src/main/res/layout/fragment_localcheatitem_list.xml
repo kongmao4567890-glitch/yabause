@@ -32,11 +32,16 @@
     tools:context="org.uoyabause.android.cheat.LocalCheatItemFragment"
     tools:listitem="@layout/fragment_localcheatitem">
 
+    <Button
+        android:id="@+id/button_catalog"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/cheat_catalog_title" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="8dp"
-        android:layout_weight="0.05"
         android:orientation="horizontal">
 
         <Button
@@ -74,8 +79,8 @@
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/list"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_weight="0.95"
+        android:layout_height="0dp"
+        android:layout_weight="1"
         android:orientation="vertical">
 
     </androidx.recyclerview.widget.RecyclerView>

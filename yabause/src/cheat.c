@@ -108,7 +108,8 @@ int CheatAddARCode(const char *code)
 {
    unsigned long addr;
    unsigned short val;
-   sscanf(code, "%08lX %04hX", &addr, &val);
+   if (code == NULL || sscanf(code, "%08lX %04hX", &addr, &val) != 2)
+      return -1;
    switch (addr >> 28)
    {
       case 0x0:

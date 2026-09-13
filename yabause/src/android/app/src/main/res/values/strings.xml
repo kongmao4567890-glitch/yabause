@@ -590,4 +590,21 @@
     <string name="pad_test">Pad Test</string>
     <string name="empty">Empty</string>
     <string name="video_filter_dot_clear">Dot-clear (Phosphor Dot v3.3)</string>
+    <string name="cheat_catalog_title">Find cheats by game name</string>
+    <string name="cheat_catalog_target">Add to current game: %1$s</string>
+    <string name="cheat_catalog_hint">Game name or ID (Chinese / English)</string>
+    <string name="cheat_catalog_back">Back to game search</string>
+    <string name="cheat_catalog_add">Add selected</string>
+    <string name="cheat_catalog_game_count">%1$d available cheats</string>
+    <string name="cheat_catalog_notes">View tips and button sequences</string>
+    <string name="cheat_catalog_reference">Reference only · tap to view</string>
+    <string name="cheat_catalog_loading">Loading offline cheat library…</string>
+    <string name="cheat_catalog_load_failed">Unable to load the cheat library. Close and try again.</string>
+    <string name="cheat_catalog_empty">No matches. Try part of the game name or clear the search to browse all games.</string>
+    <string name="cheat_catalog_results">%1$d game records. Choose the matching region and version.</string>
+    <string name="cheat_catalog_selected">%1$d selected. Long-press to preview codes. Enable added cheats in the local list.</string>
+    <string name="cheat_catalog_unsupported">This code format is not supported by the current cheat engine. The complete original group is shown below.</string>
+    <string name="cheat_catalog_incomplete">This group contains missing or malformed codes and cannot be added automatically.</string>
+    <string name="cheat_catalog_added">Added %1$d; skipped %2$d duplicates. Enable them in the local cheat list.</string>
+    <string name="cheat_catalog_import_failed">Could not add the selected cheats. Please try again.</string>
 </resources>

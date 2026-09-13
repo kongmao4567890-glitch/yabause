@@ -37,6 +37,9 @@ jobs:
       - name: Test bank sprite transparency
         run: python3 yabause/src/tests/test_vdp1_bank_metadata.py
 
+      - name: Test offline cheat catalogue and native parser
+        run: python3 tools/test_cheat_catalog.py
+
       - name: Restore and check fixed APK signing key
         if: github.event_name != 'pull_request'
         env:
@@ -75,6 +78,10 @@ jobs:
       - name: Grant execute permission for gradlew
         working-directory: yabause/src/android
         run: chmod +x gradlew
+
+      - name: Test Android cheat search
+        working-directory: yabause/src/android
+        run: ./gradlew :app:testDebugUnitTest --tests org.uoyabause.android.cheat.CheatCatalogTest --no-daemon --stacktrace
 
       - name: Compile pull request (not distributed)
         if: github.event_name == 'pull_request'

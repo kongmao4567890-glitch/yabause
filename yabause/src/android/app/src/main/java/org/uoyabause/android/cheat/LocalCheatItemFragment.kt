@@ -119,6 +119,13 @@ class LocalCheatItemFragment
         listview_!!.layoutManager = LinearLayoutManager(context)
         updateCheatList()
         root_view_ = view
+        view.findViewById<Button>(R.id.button_catalog).setOnClickListener {
+            mGameCode?.takeIf { it.isNotBlank() }?.let { game ->
+                if (parentFragmentManager.findFragmentByTag("CheatCatalog") == null) {
+                    CheatCatalogDialog.newInstance(game).show(parentFragmentManager, "CheatCatalog")
+                }
+            }
+        }
         val add = view.findViewById<View>(R.id.button_add) as Button
         add.setOnClickListener { _ -> onAddItem() }
         val import = view.findViewById<View>(R.id.button_import) as Button
@@ -128,6 +135,13 @@ class LocalCheatItemFragment
         val export = view.findViewById<View>(R.id.button_export) as Button
         export.setOnClickListener { _ -> exportCheats() }
         return view
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        parentFragmentManager.setFragmentResultListener(CheatCatalogDialog.RESULT, viewLifecycleOwner) { _, result ->
+            if (result.getString(CheatCatalogDialog.ARG_GAME) == mGameCode) updateCheatList()
+        }
     }
 
     override fun setUserVisibleHint(isVisibleToUser: Boolean) {

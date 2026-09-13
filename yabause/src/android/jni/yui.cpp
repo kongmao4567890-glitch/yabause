@@ -2184,7 +2184,6 @@ extern "C"
 
         int stringCount = env->GetArrayLength(stringArray);
         int i = 0;
-        int index = 0;
         CheatClearCodes();
         for (i = 0; i < stringCount; i++)
         {
@@ -2196,9 +2195,9 @@ extern "C"
             const char *rawString = env->GetStringUTFChars(string, 0);
             // Don't forget to call `ReleaseStringUTFChars` when you're done.
 
-            index = CheatAddARCode(rawString);
-            CheatEnableCode(index);
-            env->ReleaseStringUTFChars(string, rawString);
+            if (rawString != NULL) CheatAddARCode(rawString);
+            if (rawString != NULL) env->ReleaseStringUTFChars(string, rawString);
+            env->DeleteLocalRef(string);
         }
         // CheatDoPatches(); will call at  Vblank-in
         return;

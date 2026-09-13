@@ -89,15 +89,11 @@ class TabCheatFragment : Fragment() {
     }
 
     fun AddActiveCheat(v: String) {
-        active_cheats_.add(v)
-        val set: MutableSet<String> = HashSet()
-        set.addAll(active_cheats_)
-        active_cheats_.addAll(set)
+        if (!active_cheats_.contains(v)) active_cheats_.add(v)
     }
 
     fun RemoveActiveCheat(v: String) {
-        active_cheats_.remove(v)
-        active_cheats_.remove(v)
+        active_cheats_.removeAll { it == v }
     }
 
     fun isActive(v: String): Boolean {
