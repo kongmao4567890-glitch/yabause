@@ -555,4 +555,5 @@
     <string name="no_save_data">未找到存档数据</string>
     <string name="pad_test">手柄测试</string>
     <string name="empty">空</string>
+    <string name="video_filter_dot_clear">Dot-clear（荧光点 v3.3）</string>
 </resources>

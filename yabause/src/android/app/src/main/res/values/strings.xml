@@ -589,4 +589,5 @@
     <string name="no_save_data">No save data found</string>
     <string name="pad_test">Pad Test</string>
     <string name="empty">Empty</string>
+    <string name="video_filter_dot_clear">Dot-clear (Phosphor Dot v3.3)</string>
 </resources>

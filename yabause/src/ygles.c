@@ -1343,7 +1343,7 @@ int YglGenFrameBuffer() {
 
 //////////////////////////////////////////////////////////////////////////////
 int YglIsNeedFrameBuffer() {
-  if (_Ygl->aamode >= AA_CRT_LOTTES && _Ygl->aamode <= AA_SHARPEN) {
+  if (_Ygl->aamode >= AA_CRT_LOTTES && _Ygl->aamode <= AA_DOT_CLEAR) {
     return 1;
   }
   if (_Ygl->aamode == AA_FXAA) {
@@ -3834,7 +3834,7 @@ void YglRender(void) {
    }
 
    if (_Ygl->aamode == AA_FXAA ||
-       (_Ygl->aamode >= AA_CRT_LOTTES && _Ygl->aamode <= AA_SHARPEN)) {
+       (_Ygl->aamode >= AA_CRT_LOTTES && _Ygl->aamode <= AA_DOT_CLEAR)) {
      glViewport(0, 0, _Ygl->width, _Ygl->height);
      glScissor(0, 0, _Ygl->width, _Ygl->height);
    }
@@ -4049,7 +4049,7 @@ void YglRender(void) {
     glScissor(_Ygl->originx, _Ygl->originy, GlWidth, GlHeight);
     YglBlitScanlineFilter(_Ygl->fxaa_fbotex, GlHeight, _Ygl->rheight);
   }
-  else if (_Ygl->aamode >= AA_CRT_LOTTES && _Ygl->aamode <= AA_SHARPEN) {
+  else if (_Ygl->aamode >= AA_CRT_LOTTES && _Ygl->aamode <= AA_DOT_CLEAR) {
     glBindFramebuffer(GL_FRAMEBUFFER, _Ygl->default_fbo);
     glDisable(GL_SCISSOR_TEST);
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);

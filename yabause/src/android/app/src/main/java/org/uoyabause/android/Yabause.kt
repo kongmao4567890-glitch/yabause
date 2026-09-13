@@ -1445,7 +1445,7 @@ class Yabause : AppCompatActivity(),
                         val sharedPref = PreferenceManager.getDefaultSharedPreferences(this@Yabause)
                         YabauseRunnable.setFilter(gamePreference.getString(
                             "pref_filter", sharedPref.getString("pref_filter", "0")
-                        )?.toIntOrNull()?.coerceIn(0, 8) ?: 0)
+                        )?.toIntOrNull()?.coerceIn(0, 9) ?: 0)
                         YabauseRunnable.enableRotateScreen(
                             if (gamePreference.getBoolean(
                                     "pref_rotate_screen",
@@ -2298,7 +2298,7 @@ class Yabause : AppCompatActivity(),
 
         val ifilter = gamePreference.getString(
             "pref_filter", sharedPref.getString("pref_filter", "0")
-        )?.toIntOrNull()?.coerceIn(0, 8) ?: 0
+        )?.toIntOrNull()?.coerceIn(0, 9) ?: 0
         YabauseRunnable.setFilter(ifilter)
         Log.d(TAG, "setFilter $ifilter")
         val audioout = sharedPref.getBoolean("pref_audio", true)

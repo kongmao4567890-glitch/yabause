@@ -5139,12 +5139,15 @@ int YglBlitScanlineFilter(u32 sourceTexture, u32 draw_res_v, u32 staturn_res_v) 
 
 
 /* Display post-processing is compiled lazily once per filter and GL context. */
+static void YglResetDotClear(void);
+static void YglDeleteDotClear(void);
 static GLuint display_programs[5] = {0};
 static int display_failed[5] = {0};
 static GLuint display_vao = 0;
 static GLint display_uniforms[5][5];
 
 void YglResetDisplayFilters(void) {
+  YglResetDotClear();
   int i;
   for (i = 0; i < 5; ++i) {
     display_programs[i] = 0;
@@ -5154,6 +5157,7 @@ void YglResetDisplayFilters(void) {
 }
 
 void YglDeleteDisplayFilters(void) {
+  YglDeleteDotClear();
   int i;
   for (i = 0; i < 5; ++i)
     if (display_programs[i]) glDeleteProgram(display_programs[i]);
@@ -5188,12 +5192,15 @@ static GLuint YglCompileDisplayShader(GLenum type, int mode, const char *body) {
   return shader;
 }
 
+#include "shaders/DotClearRenderer.h"
+
 int YglBlitDisplayFilter(u32 texture, int mode, int outputWidth, int outputHeight) {
   GLuint program, vertex, fragment;
   GLint linked = GL_FALSE, previousProgram, previousVao, previousTexture, previousActive;
   GLboolean depth, blend, stencil;
   int index = mode - AA_CRT_LOTTES;
   int rotate, nativeWidth, nativeHeight;
+  if (mode == AA_DOT_CLEAR) return YglBlitDotClear(texture, outputWidth, outputHeight);
   if (index < 0 || index >= 5 || !_Ygl || outputWidth <= 0 || outputHeight <= 0) return -1;
   if (display_failed[index]) return -1;
   if (!display_programs[index]) {

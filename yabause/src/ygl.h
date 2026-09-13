@@ -519,6 +519,7 @@ typedef enum
   AA_LCD_GRID,
   AA_SHARP_BILINEAR,
   AA_SHARPEN,
+  AA_DOT_CLEAR,
 } AAMODE;
 
 typedef enum
