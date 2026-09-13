@@ -5,7 +5,7 @@ import subprocess
 import tempfile
 import unittest
 
-from build_cheat_catalog import build, normalize_code, parse, OUTPUT, ROOT
+from build_cheat_catalog import build, normalize_code, parse, parse_cht, OUTPUT, ROOT
 
 
 class CatalogTest(unittest.TestCase):
@@ -36,11 +36,32 @@ class CatalogTest(unittest.TestCase):
         self.assertEqual(game["entries"][0]["code"], "16000000 0001")
         self.assertEqual(normalize_code("16000000\tff"), "16000000 00FF")
 
+    def test_cht_export_keeps_effects_and_rejects_partial_groups(self):
+        game = parse_cht('# 游戏说明\ncheat0_desc = "金钱"\n'
+                         'cheat0_code = "16000000-ff,16000002-0001"\n'
+                         'cheat0_enable = "true"\n'
+                         'cheat1_desc = "含主码"\n'
+                         'cheat1_code = "16000000-0001,F6000914-C305"\n'
+                         'cheat2_code = "D6000000-0001"\n'
+                         'cheat3_code = "16000000-0001,错误"\n', "SS.zip/test.cht", "游戏")
+        self.assertEqual(len(game["entries"]), 4)
+        self.assertEqual(game["entries"][0]["code"], "16000000 00FF\n16000002 0001")
+        self.assertNotIn("enable", game["entries"][0])
+        self.assertEqual(game["entries"][1]["reason"], "unsupported")
+        self.assertEqual(game["entries"][2]["reason"], "incomplete")
+        self.assertTrue(all(not entry["code"] for entry in game["entries"][1:]))
+        self.assertIn("游戏说明", game["notes"])
+        with self.assertRaises(ValueError):
+            parse_cht('cheat0_address = "1234"', "unknown.cht", "游戏")
+
     def test_real_collection_is_reproducible_and_versioned(self):
         catalog = build()
         self.assertEqual(catalog, json.loads(OUTPUT.read_text()))
-        self.assertEqual(len(catalog["games"]), 759)
-        self.assertEqual(len({g["id"] for g in catalog["games"]}), 759)
+        self.assertEqual(len(catalog["games"]), 853)
+        self.assertEqual(len({g["id"] for g in catalog["games"]}), 853)
+        zipped = [g for g in catalog["games"] if g["source"].startswith("SS.zip /")]
+        self.assertEqual(len(zipped), 94)
+        self.assertEqual(sum(len(g["entries"]) for g in zipped), 1588)
         sf3 = [g for g in catalog["games"] if "GS-9203" in g["name"]]
         self.assertTrue(sf3 and sf3[0]["entries"])
         stages = [e for e in catalog["games"][0]["entries"] if "选关" in e["title"]]

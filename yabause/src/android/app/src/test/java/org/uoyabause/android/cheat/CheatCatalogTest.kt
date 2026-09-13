@@ -13,13 +13,14 @@ class CheatCatalogTest {
 
     @Test fun namesIdsVersionsAndAliases() {
         val catalog = catalog()
-        assertEquals(759, catalog.games.size)
+        assertEquals(853, catalog.games.size)
         assertTrue(catalog.search("光明力量３").any { "GS-9203" in it.name })
         assertTrue(catalog.search("gs 9203").any { "GS-9203" in it.name })
         assertTrue(catalog.search("shining force iii").isNotEmpty())
+        assertTrue(catalog.search("光明力量3").any { it.source.startsWith("SS.zip /") })
         assertTrue(catalog.search("梦幻模拟战3").any { "兰格莉萨3" in it.name })
         assertTrue(catalog.search("不存在的游戏abcdef").isEmpty())
-        assertEquals(759, catalog.search(" ").size)
+        assertEquals(853, catalog.search(" ").size)
         assertTrue(catalog.search("光明力量3").map { it.id }.distinct().size > 3)
     }
 

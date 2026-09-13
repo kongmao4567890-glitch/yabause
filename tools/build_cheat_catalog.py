@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Build a version-aware offline catalogue from the user's three SS collections.
+"""Build a version-aware offline catalogue from the user's SS text and .cht collections.
 
 Do not guess missing addresses, convert other consoles' formats, or split a
 conditional/multi-line cheat into independent writes. Keep rejected groups as
@@ -9,6 +9,7 @@ import hashlib
 import json
 from pathlib import Path
 import re
+import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
 OUTPUT = ROOT / "yabause/src/android/app/src/main/assets/cheats/catalog.json"
@@ -94,11 +95,57 @@ def parse(text, source):
     return games
 
 
+def parse_cht(text, source, name):
+    """Read the supplied SS .cht export without executing config values.
+
+    Commas join writes belonging to one effect; hyphens separate address/value.
+    The source enable flag never enables an imported cheat automatically.
+    """
+    records = {}
+    notes = []
+    for raw in text.lstrip("\ufeff").splitlines():
+        line = raw.strip()
+        if not line:
+            continue
+        if line.startswith("#"):
+            notes.append(line[1:].strip())
+            continue
+        match = re.fullmatch(r'cheat(\d+)_(desc|code|enable)\s*=\s*"(.*)"', line)
+        if not match:
+            raise ValueError(f"Unrecognized .cht field in {source}")
+        record = records.setdefault(int(match[1]), {})
+        if match[2] in record:
+            raise ValueError(f"Duplicate .cht field in {source}")
+        record[match[2]] = match[3]
+    entries = []
+    for index, record in sorted(records.items()):
+        raw = record.get("code", "")
+        codes = [normalize_code(part.strip().replace("-", " ")) for part in raw.split(",")]
+        reason = ""
+        if any(code is None for code in codes):
+            reason = "incomplete"
+        elif any(code[0] not in "13D" for code in codes):
+            reason = "unsupported"
+        elif codes[-1].startswith("D"):
+            reason = "incomplete"
+        entries.append({"title": record.get("desc") or f"金手指 {index + 1}",
+                        "code": "\n".join(codes) if not reason else "",
+                        "raw": raw, "reason": reason})
+    return {"id": hashlib.sha256(source.encode()).hexdigest()[:16],
+            "name": name, "source": source, "entries": entries, "notes": notes}
+
+
 def build():
     games = []
     for index, name in enumerate(SOURCES):
         games.extend(parse((ROOT / f"tools/cheat_catalog_sources/ss-cheats-{index}.txt")
                            .read_text(encoding="utf-8-sig"), name))
+    with zipfile.ZipFile(ROOT / "tools/cheat_catalog_sources/SS.zip") as archive:
+        for member in sorted(archive.namelist()):
+            if member.endswith(".cht"):
+                name = Path(member).stem.removeprefix("SS_")
+                games.append(parse_cht(archive.read(member).decode("utf-8-sig"),
+                                       "SS.zip / " + Path(member).name, name))
     return {"format": 1, "games": games}
 
 
